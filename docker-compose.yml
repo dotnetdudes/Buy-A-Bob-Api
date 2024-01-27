@@ -1,0 +1,14 @@
+version: "3"
+services:
+    dudes-db:
+      build: 
+        context: ./DockerDev
+        dockerfile: Dockerfile
+      ports:
+        - "5432:5432"
+      restart: unless-stopped
+      environment:
+        POSTGRES_MULTIPLE_DATABASES: bobsdb,bobstestdb
+        POSTGRES_USER: dudes
+        POSTGRES_PASSWORD: Pa55word
+      container_name: buyabob-db
