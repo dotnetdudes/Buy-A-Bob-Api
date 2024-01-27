@@ -2,7 +2,6 @@
 using Dotnetdudes.Buyabob.Api.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.Hosting;
 using System.Data;
 
 namespace Dotnetdudes.Buyabob.Api.Routes

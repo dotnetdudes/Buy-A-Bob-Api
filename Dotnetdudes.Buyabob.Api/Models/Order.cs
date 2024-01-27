@@ -26,6 +26,8 @@
         // date and time of purchase
         public DateTime DatePurchased { get; set; } = DateTime.UtcNow;
 
+        public DateTime? DateShipped { get; set; }
+
         // deleted
         public DateTime? Deleted { get; set; }
     }

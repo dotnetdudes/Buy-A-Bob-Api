@@ -11,6 +11,8 @@
 
         public string Email { get; set; } = string.Empty;
 
-        public int AddressId { get; set; }
+        public DateTime? Deleted { get; set; }
+
+        public List<Address> Addresses { get; set; } = [];        
     }
 }

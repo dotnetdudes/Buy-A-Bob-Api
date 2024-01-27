@@ -8,21 +8,33 @@ namespace Dotnetdudes.Buyabob.Api
     {
         public static void Initialise(WebApplication app)
         { 
-                       using var scope = app.Services.CreateScope();
+            using var scope = app.Services.CreateScope();
             var services = scope.ServiceProvider;
             var env = services.GetRequiredService<IHostEnvironment>();
             if (env.IsDevelopment())
             {
                 var db = services.GetRequiredService<IDbConnection>();
+
+                db.Execute(@"
+                    CREATE TABLE IF NOT EXISTS Customers
+                    (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        FirstName VARCHAR(120) NOT NULL,
+                        LastName VARCHAR(120) NOT NULL,
+                        Email VARCHAR(120) NOT NULL,
+                        Deleted DATETIME
+                    );");
+
                 db.Execute(@"
                     CREATE TABLE IF NOT EXISTS Addresses
                     (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        Line1 TEXT NOT NULL,
-                        Line2 TEXT,
-                        Town TEXT NOT NULL,
-                        County TEXT NOT NULL,
-                        Postcode TEXT NOT NULL,
+                        CustomerId INTEGER NOT NULL,
+                        Street VARCHAR(120) NOT NULL,
+                        Suburb VARCHAR(120) NOT NULL,
+                        City VARCHAR(120) NOT NULL,
+                        State VARCHAR(120) NOT NULL,
+                        Postcode CHAR(4) NOT NULL,
                         Deleted DATETIME
                     );
                 ");
@@ -39,7 +51,7 @@ namespace Dotnetdudes.Buyabob.Api
                     CREATE TABLE IF NOT EXISTS Products
                     (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        Name TEXT NOT NULL,
+                        Name VARCHAR(120) NOT NULL,
                         Price INTEGER NOT NULL,
                         Deleted DATETIME
                     );");
@@ -51,7 +63,7 @@ namespace Dotnetdudes.Buyabob.Api
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         ProductId INTEGER NOT NULL,
                         Quantity INTEGER NOT NULL,
-                        CartId TEXT NOT NULL,
+                        CartId INTEGER NOT NULL,
                         FOREIGN KEY(ProductId) REFERENCES Products(Id)
                     );");
 
@@ -68,12 +80,47 @@ namespace Dotnetdudes.Buyabob.Api
                     CREATE TABLE IF NOT EXISTS Categories
                     (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        Name TEXT NOT NULL,
+                        Name VARCHAR(120) NOT NULL,
                         Deleted DATETIME
                     );");
 
-                // ProductCategories
-                
+                // ProductTag
+                db.Execute(@"
+                    CREATE TABLE IF NOT EXISTS ProductTags
+                    (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ProductId INTEGER NOT NULL,
+                        TagId INTEGER NOT NULL,
+                        FOREIGN KEY(ProductId) REFERENCES Products(Id),
+                        FOREIGN KEY(TagId) REFERENCES Tags(Id)
+                    );");
+
+                // ShippingAddress
+                db.Execute(@"
+                    CREATE TABLE IF NOT EXISTS ShippingAddresses
+                    (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name VARCHAR(120) NOT NULL,
+                        Deleted DATETIME
+                    );");
+
+                // ShippingType
+                db.Execute(@"
+                    CREATE TABLE IF NOT EXISTS ShippingTypes
+                    (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name VARCHAR(120) NOT NULL,
+                        Deleted DATETIME
+                    );");
+
+                // Tags
+                db.Execute(@"
+                    CREATE TABLE IF NOT EXISTS Tags
+                    (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name VARCHAR(120) NOT NULL,
+                        Deleted DATETIME
+                    );");
             }
         }
     }

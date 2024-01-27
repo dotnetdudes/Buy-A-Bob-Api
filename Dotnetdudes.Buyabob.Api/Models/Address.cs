@@ -5,6 +5,8 @@
         public int Id { get; set; }
         public int CustomerId { get; set; }
         public string Street { get; set; } = string.Empty;
+
+        public string Suburb { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
         public string State { get; set; } = string.Empty;
         public string Postcode { get; set; } = string.Empty;
