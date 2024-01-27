@@ -1,0 +1,6 @@
+@Dotnetdudes.Buyabob.Api_HostAddress = http://localhost:5148
+
+GET {{Dotnetdudes.Buyabob.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
