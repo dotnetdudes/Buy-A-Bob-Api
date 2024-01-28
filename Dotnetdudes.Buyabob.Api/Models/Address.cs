@@ -11,6 +11,9 @@
         public string State { get; set; } = string.Empty;
         public string Postcode { get; set; } = string.Empty;
         public string Country { get; set; } = string.Empty;
+
+        public DateTime Created { get; set; } = DateTime.UtcNow;
+        public DateTime? Updated { get; set; }
         public DateTime? Deleted { get; set; }
     }
 }

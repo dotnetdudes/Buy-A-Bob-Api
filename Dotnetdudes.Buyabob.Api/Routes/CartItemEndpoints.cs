@@ -12,14 +12,54 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var cartItems = await db.QueryAsync<CartItem>("SELECT * FROM CartItems where Deleted IS NOT NULL");
+                var cartItems = await db.QueryAsync<CartItem>("SELECT * FROM CartItems");
                 return TypedResults.Json(cartItems);
             });
 
-            group.MapGet("/{id}", async (IDbConnection db, int id) =>
+            group.MapGet("/active", async (IDbConnection db) =>
             {
-                var cartItem = await db.QueryFirstOrDefaultAsync<CartItem>("SELECT * FROM CartItems WHERE Id = @id", new { id });
-                return TypedResults.Json(cartItem);
+                var cartItems = await db.QueryAsync<CartItem>("SELECT * FROM CartItems where Deleted IS NULL");
+                return TypedResults.Json(cartItems);
+            });
+
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<CartItem>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var cartItem = await db.QueryFirstOrDefaultAsync<CartItem>("SELECT * FROM CartItems WHERE id = @id", new { id });
+                return cartItem is null ? TypedResults.NotFound() : TypedResults.Json(cartItem);
+            });
+
+            // get by cart id
+            group.MapGet("/cart/{id}", async Task<Results<JsonHttpResult<IEnumerable<CartItem>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var cartItems = await db.QueryAsync<CartItem>("SELECT * FROM CartItems WHERE CartId = @id", new { id });
+                // return TypedResults.Json(cartItems);
+                return cartItems is null ? TypedResults.NotFound() : TypedResults.Json(cartItems);
+            });
+
+            // get active by cart id
+            group.MapGet("/cart/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<CartItem>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var cartItems = await db.QueryAsync<CartItem>("SELECT * FROM CartItems WHERE CartId = @id AND Deleted IS NULL", new { id });
+                // return TypedResults.Json(cartItems);
+                return cartItems is null ? TypedResults.NotFound() : TypedResults.Json(cartItems);
             });
 
             group.MapPost("/", async Task<Results<Created<CartItem>, NotFound, ValidationProblem>> (IValidator<CartItem> validator, IDbConnection db, CartItem cartItem) =>
@@ -56,13 +96,14 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.ValidationProblem(validationResult.ToDictionary());
                 }
+                cartItem.Updated = DateTime.UtcNow;
                 // update cartItem in database
                 var rowsAffected = await db.ExecuteAsync(@"
                     UPDATE CartItems
                     SET CartId = @CartId,
                         ProductId = @ProductId,
                         Quantity = @Quantity
-                    WHERE Id = @Id", cartItem);
+                    WHERE id = @Id", cartItem);
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
@@ -83,9 +124,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete cartItem from database
-                var rowsAffected = await db.ExecuteAsync(@"
-                    DELETE FROM CartItems
-                    WHERE Id = @Id", new { id });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE CartItems SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

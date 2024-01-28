@@ -16,11 +16,12 @@
         public int Quantity { get; set; }
 
         // created and updated dates in utc
-        public DateTime CreatedDateUtc { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedDateUtc { get; set; }
+        public DateTime Created { get; set; } = DateTime.UtcNow;
+        public DateTime Updated { get; set; }
 
         // sold
         public bool IsSold { get; set; } = false;
-        public DateTime? SoldDateUtc { get; set; }
+        public DateTime? SoldDate { get; set; }
+        public DateTime? Deleted { get; set; }
     }
 }

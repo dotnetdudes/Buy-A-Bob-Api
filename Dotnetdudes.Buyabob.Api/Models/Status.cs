@@ -1,6 +1,6 @@
 ﻿namespace Dotnetdudes.Buyabob.Api.Models
 {
-    public class Tag
+    public class Status
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;

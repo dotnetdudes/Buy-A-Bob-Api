@@ -12,14 +12,27 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var tags = await db.QueryAsync<Tag>("SELECT * FROM Tags where Deleted IS NOT NULL");
+                var tags = await db.QueryAsync<Tag>("SELECT * FROM Tags");
                 return TypedResults.Json(tags);
             });
 
-            group.MapGet("/{id}", async (IDbConnection db, int id) =>
+            group.MapGet("/active", async (IDbConnection db) =>
             {
+                var tags = await db.QueryAsync<Tag>("SELECT * FROM Tags where Deleted IS NULL");
+                return TypedResults.Json(tags);
+            });
+
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Tag>, NotFound, BadRequest>>(IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
                 var tag = await db.QueryFirstOrDefaultAsync<Tag>("SELECT * FROM Tags WHERE Id = @id", new { id });
-                return TypedResults.Json(tag);
+                
+                return tag is null ? TypedResults.NotFound() : TypedResults.Json(tag);
             });
 
             group.MapPost("/", async Task<Results<Created<Tag>, NotFound, ValidationProblem>> (IValidator<Tag> validator, IDbConnection db, Tag tag) =>
@@ -60,7 +73,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 var rowsAffected = await db.ExecuteAsync(@"
                     UPDATE Tags
                     SET Name = @Name
-                    WHERE Id = @Id", tag);
+                    WHERE id = @Id", tag);
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
@@ -81,9 +94,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete tag from database
-                var rowsAffected = await db.ExecuteAsync(@"
-                    DELETE FROM Tags
-                    WHERE Id = @Id", new { id });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE Tags SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

@@ -11,6 +11,10 @@
 
         public string Email { get; set; } = string.Empty;
 
+        public DateTime Created { get; set; } = DateTime.UtcNow;
+
+        public DateTime? Updated { get; set; }
+
         public DateTime? Deleted { get; set; }
 
         public List<Address> Addresses { get; set; } = [];        

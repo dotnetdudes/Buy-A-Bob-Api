@@ -12,14 +12,83 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts where Deleted IS NOT NULL");
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts");
                 return TypedResults.Json(carts);
             });
 
-            group.MapGet("/{id}", async (IDbConnection db, int id) =>
+            group.MapGet("/active", async (IDbConnection db) =>
             {
-                var cart = await db.QueryFirstOrDefaultAsync<Cart>("SELECT * FROM Carts WHERE Id = @id", new { id });
-                return TypedResults.Json(cart);
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts where Deleted IS NULL");
+                return TypedResults.Json(carts);
+            });
+
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Cart>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var cart = await db.QueryFirstOrDefaultAsync<Cart>("SELECT * FROM Carts WHERE id = @id", new { id });
+                // return TypedResults.Json(cart);
+                return cart is null ? TypedResults.NotFound() : TypedResults.Json(cart);
+            });
+
+            // get by customer id
+            group.MapGet("/customer/{id}", async Task<Results<JsonHttpResult<IEnumerable<Cart>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts WHERE CustomerId = @id", new { id });
+                // return TypedResults.Json(carts);
+                return carts is null ? TypedResults.NotFound() : TypedResults.Json(carts);
+            });
+
+            // get active by customer id
+            group.MapGet("/customer/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Cart>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts WHERE CustomerId = @id AND Deleted IS NULL", new { id });
+                // return TypedResults.Json(carts);
+                return carts is null ? TypedResults.NotFound() : TypedResults.Json(carts);
+            });
+
+            // get by status id
+            group.MapGet("/status/{id}", async Task<Results<JsonHttpResult<IEnumerable<Cart>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts WHERE StatusId = @id", new { id });
+                // return TypedResults.Json(carts);
+                return carts is null ? TypedResults.NotFound() : TypedResults.Json(carts);
+            });
+
+            // get active by status id
+            group.MapGet("/status/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Cart>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts WHERE StatusId = @id AND Deleted IS NULL", new { id });
+                // return TypedResults.Json(carts);
+                return carts is null ? TypedResults.NotFound() : TypedResults.Json(carts);
             });
 
             group.MapPost("/", async Task<Results<Created<Cart>, NotFound, ValidationProblem>> (IValidator<Cart> validator, IDbConnection db, Cart cart) =>
@@ -56,11 +125,12 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.ValidationProblem(validationResult.ToDictionary());
                 }
+                cart.Updated = DateTime.UtcNow;
                 // update cart in database
                 var rowsAffected = await db.ExecuteAsync(@"
                     UPDATE Carts
                     SET UserId = @UserId, ProductId = @ProductId, Quantity = @Quantity
-                    WHERE Id = @Id", cart);
+                    WHERE id = @Id", cart);
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
@@ -81,9 +151,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete cart from database
-                var rowsAffected = await db.ExecuteAsync(@"
-                    DELETE FROM Carts
-                    WHERE Id = @Id", new { Id = number });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE Carts SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

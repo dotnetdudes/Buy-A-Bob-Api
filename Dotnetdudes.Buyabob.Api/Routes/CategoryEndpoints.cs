@@ -12,14 +12,27 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var categories = await db.QueryAsync<Category>("SELECT * FROM Categories where Deleted IS NOT NULL");
+                var categories = await db.QueryAsync<Category>("SELECT * FROM Categories");
                 return TypedResults.Json(categories);
             });
 
-            group.MapGet("/{id}", async (IDbConnection db, int id) =>
+            group.MapGet("/active", async (IDbConnection db) =>
             {
-                var category = await db.QueryFirstOrDefaultAsync<Category>("SELECT * FROM Categories WHERE Id = @id", new { id });
-                return TypedResults.Json(category);
+                var categories = await db.QueryAsync<Category>("SELECT * FROM Categories where Deleted IS NULL");
+                return TypedResults.Json(categories);
+            });
+
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Category>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var category = await db.QueryFirstOrDefaultAsync<Category>("SELECT * FROM Categories WHERE id = @id", new { id });
+                // return TypedResults.Json(category);
+                return category is null ? TypedResults.NotFound() : TypedResults.Json(category);
             });
 
             group.MapPost("/", async Task<Results<Created<Category>, NotFound, ValidationProblem>> (IValidator<Category> validator, IDbConnection db, Category category) =>
@@ -60,7 +73,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 var rowsAffected = await db.ExecuteAsync(@"
                     UPDATE Categories
                     SET Name = @Name
-                    WHERE Id = @Id", category);
+                    WHERE id = @Id", category);
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
@@ -83,7 +96,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 // delete category from database
                 var rowsAffected = await db.ExecuteAsync(@"
                     DELETE FROM Categories
-                    WHERE Id = @Id", new { id });
+                    WHERE id = @id", new { id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

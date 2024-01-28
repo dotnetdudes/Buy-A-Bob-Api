@@ -13,6 +13,12 @@
         public int Quantity { get; set; }
 
         // date and time of purchase
-        public DateTime DatePurchased { get; set; } = DateTime.UtcNow;
+        public DateTime Created { get; set; } = DateTime.UtcNow;
+
+        // date and time of last update
+        public DateTime? Updated { get; set; }
+
+        // date and time of deletion
+        public DateTime? Deleted { get; set; }
     }
 }

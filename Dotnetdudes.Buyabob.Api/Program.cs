@@ -77,31 +77,20 @@ app.UseExceptionHandler(exceptionHandlerApp
         })
     ) ;               
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+app.MapGroup("/api/customers").MapCustomerEndpoints().WithTags("Customers");
+app.MapGroup("/api/address").MapAddressEndpoints().WithTags("Address");
+app.MapGroup("/api/products").MapProductEndpoints().WithTags("Products");
+app.MapGroup("/api/category").MapCategoryEndpoints().WithTags("Category");
+app.MapGroup("/api/productcategory").MapProductCategoryEndpoints().WithTags("Product Category");
+app.MapGroup("/api/tags").MapTagEndpoints().WithTags("Tags");
+app.MapGroup("/api/producttags").MapProductTagEndpoints().WithTags("Product Tags");
+app.MapGroup("/api/status").MapStatusEndpoints().WithTags("Status");
+app.MapGroup("/api/cart").MapCartEndpoints().WithTags("Cart");
+app.MapGroup("/api/cartitem").MapCartItemEndpoints().WithTags("Cart Item");
+app.MapGroup("/api/orders").MapOrderEndpoints().WithTags("Orders");
+app.MapGroup("/api/ShippingAddress").MapShippingAddressEndpoints().WithTags("Shipping Address");
+app.MapGroup("/api/shippingtype").MapShippingTypeEndpoints().WithTags("Shipping Type");
 
 app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
 
 public partial class Program { }

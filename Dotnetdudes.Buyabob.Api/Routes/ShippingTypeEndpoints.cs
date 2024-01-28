@@ -12,14 +12,27 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var shippingTypes = await db.QueryAsync<ShippingType>("SELECT * FROM ShippingTypes where Deleted IS NOT NULL");
+                var shippingTypes = await db.QueryAsync<ShippingType>("SELECT * FROM ShippingTypes");
                 return TypedResults.Json(shippingTypes);
             });
 
-            group.MapGet("/{id}", async (IDbConnection db, int id) =>
+            group.MapGet("/active", async (IDbConnection db) =>
             {
-                var shippingType = await db.QueryFirstOrDefaultAsync<ShippingType>("SELECT * FROM ShippingTypes WHERE Id = @id", new { id });
-                return TypedResults.Json(shippingType);
+                var shippingTypes = await db.QueryAsync<ShippingType>("SELECT * FROM ShippingTypes where Deleted IS NULL");
+                return TypedResults.Json(shippingTypes);
+            });
+
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<ShippingType>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var shippingType = await db.QueryFirstOrDefaultAsync<ShippingType>("SELECT * FROM ShippingTypes WHERE id = @id", new { id });
+                
+                return shippingType is null ? TypedResults.NotFound() : TypedResults.Json(shippingType);
             });
 
             group.MapPost("/", async Task<Results<Created<ShippingType>, NotFound, ValidationProblem>> (IValidator<ShippingType> validator, IDbConnection db, ShippingType shippingType) =>
@@ -56,11 +69,12 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.ValidationProblem(validationResult.ToDictionary());
                 }
+                shippingType.Updated = DateTime.UtcNow;
                 // update shippingType in database
                 var rowsAffected = await db.ExecuteAsync(@"
                     UPDATE ShippingTypes
                     SET Name = @Name
-                    WHERE Id = @Id", shippingType);
+                    WHERE id = @Id", shippingType);
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
@@ -81,9 +95,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete shippingType from database
-                var rowsAffected = await db.ExecuteAsync(@"
-                    DELETE FROM ShippingTypes
-                    WHERE Id = @Id", new { id });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE ShippingTypes SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

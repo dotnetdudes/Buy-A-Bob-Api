@@ -12,14 +12,83 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories where Deleted IS NOT NULL");
+                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories");
                 return TypedResults.Json(productCategories);
             });
 
-            group.MapGet("/{id}", async (IDbConnection db, int id) =>
+            group.MapGet("/active", async (IDbConnection db) =>
             {
-                var productCategory = await db.QueryFirstOrDefaultAsync<ProductCategory>("SELECT * FROM ProductCategories WHERE Id = @id", new { id });
-                return TypedResults.Json(productCategory);
+                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories where Deleted IS NULL");
+                return TypedResults.Json(productCategories);
+            });
+
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<ProductCategory>, NotFound, BadRequest>>(IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var productCategory = await db.QueryFirstOrDefaultAsync<ProductCategory>("SELECT * FROM ProductCategories WHERE id = @id", new { id });
+                
+                return productCategory is null ? TypedResults.NotFound() : TypedResults.Json(productCategory);
+            });
+
+            // get by product id
+            group.MapGet("/product/{id}", async Task<Results<JsonHttpResult<IEnumerable<ProductCategory>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories WHERE ProductId = @id", new { id });
+                
+                return productCategories is null ? TypedResults.NotFound() : TypedResults.Json(productCategories);
+            });
+
+            // get active by product id
+            group.MapGet("/product/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<ProductCategory>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories WHERE ProductId = @id AND Deleted IS NULL", new { id });
+                
+                return productCategories is null ? TypedResults.NotFound() : TypedResults.Json(productCategories);
+            });
+
+            // get by category id
+            group.MapGet("/category/{id}", async Task<Results<JsonHttpResult<IEnumerable<ProductCategory>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories WHERE CategoryId = @id", new { id });
+                
+                return productCategories is null ? TypedResults.NotFound() : TypedResults.Json(productCategories);
+            });
+
+            // get active by category id
+            group.MapGet("/category/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<ProductCategory>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories WHERE CategoryId = @id AND Deleted IS NULL", new { id });
+                
+                return productCategories is null ? TypedResults.NotFound() : TypedResults.Json(productCategories);
             });
 
             group.MapPost("/", async Task<Results<Created<ProductCategory>, NotFound, ValidationProblem>> (IValidator<ProductCategory> validator, IDbConnection db, ProductCategory productCategory) =>
@@ -60,7 +129,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 var rowsAffected = await db.ExecuteAsync(@"
                     UPDATE ProductCategories
                     SET ProductId = @ProductId, CategoryId = @CategoryId
-                    WHERE Id = @Id", productCategory);
+                    WHERE id = @Id", productCategory);
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
@@ -81,9 +150,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete productCategory from database
-                var rowsAffected = await db.ExecuteAsync(@"
-                    DELETE FROM ProductCategories
-                    WHERE Id = @Id", new { id });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE ProductCategories SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

@@ -12,14 +12,139 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders where Deleted IS NOT NULL");
+                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders");
                 return TypedResults.Json(orders);
             });
 
-            group.MapGet("/{id}", async (IDbConnection db, int id) =>
+            group.MapGet("/active", async (IDbConnection db) =>
             {
-                var order = await db.QueryFirstOrDefaultAsync<Order>("SELECT * FROM Orders WHERE Id = @id", new { id });
-                return TypedResults.Json(order);
+                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders where Deleted IS NULL");
+                return TypedResults.Json(orders);
+            });
+
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Order>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var order = await db.QueryFirstOrDefaultAsync<Order>("SELECT * FROM Orders WHERE id = @id", new { id });
+                // return TypedResults.Json(order);
+                return order is null ? TypedResults.NotFound() : TypedResults.Json(order);
+            });
+
+            // get by customer id
+            group.MapGet("/customer/{id}", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE CustomerId = @id", new { id });
+                
+                return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
+            });
+
+            // get active by customer id
+            group.MapGet("/customer/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE CustomerId = @id AND Deleted IS NULL", new { id });
+                
+                return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
+            });
+
+            // get by status id
+            group.MapGet("/status/{id}", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE StatusId = @id", new { id });
+                // return TypedResults.Json(orders);
+                return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
+            });
+
+            // get active by status id
+            group.MapGet("/status/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE StatusId = @id AND Deleted IS NULL", new { id });
+                // return TypedResults.Json(orders);
+                return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
+            });
+
+            // get by shipping type id
+            group.MapGet("/shippingType/{id}", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE ShippingTypeId = @id", new { id });
+                // return TypedResults.Json(orders);
+                return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
+            });
+
+            // get active by shipping type id
+            group.MapGet("/shippingType/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE ShippingTypeId = @id AND Deleted IS NULL", new { id });
+                // return TypedResults.Json(orders);
+                return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
+            });
+
+            // get by shipping address id
+            group.MapGet("/shippingAddress/{id}", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE ShippingAddressId = @id", new { id });
+                // return TypedResults.Json(orders);
+                return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
+            });
+
+            // get active by shipping address id
+            group.MapGet("/shippingAddress/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success) 
+                {
+                    return TypedResults.BadRequest();
+                }
+                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE ShippingAddressId = @id AND Deleted IS NULL", new { id });
+                // return TypedResults.Json(orders);
+                return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
             });
 
             group.MapPost("/", async Task<Results<Created<Order>, NotFound, ValidationProblem>> (IValidator<Order> validator, IDbConnection db, Order order) =>
@@ -59,10 +184,19 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 // update order in database
                 var rowsAffected = await db.ExecuteAsync(@"
                     UPDATE Orders
-                    SET UserId = @UserId,
-                        ProductId = @ProductId,
-                        Quantity = @Quantity
-                    WHERE Id = @Id", order);
+                    SET StatusId = @StatusId,
+                        SubTotal = @SubTotal,
+                        Tax = @Tax,
+                        ShippingTypeId = @ShippingTypeId,
+                        Shipping = @Shipping,
+                        ShippingAddressId = @ShippingAddressId,
+                        ContactName = @ContactName,
+                        ContactPhone = @ContactPhone,
+                        Total = @Total,
+                        DatePurchased = @DatePurchased,
+                        DateShipped = @DateShipped,
+                        Deleted = @Deleted
+                    WHERE id = @Id", order);
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
@@ -83,9 +217,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete order from database
-                var rowsAffected = await db.ExecuteAsync(@"
-                    DELETE FROM Orders
-                    WHERE Id = @Id", new { Id = id });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE Orders SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

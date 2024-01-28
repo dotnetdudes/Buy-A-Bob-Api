@@ -14,14 +14,27 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var customers = await db.QueryAsync<Customer>("SELECT * FROM Customers where Deleted IS NOT NULL");
+                var customers = await db.QueryAsync<Customer>("SELECT * FROM Customers");
                 return TypedResults.Json(customers);
             });
 
-            group.MapGet("/{id}", async (IDbConnection db, int id) =>
+            group.MapGet("/active", async (IDbConnection db) =>
             {
-                var customer = await db.QueryFirstOrDefaultAsync<Customer>("SELECT * FROM Customers WHERE Id = @id", new { id });
-                return TypedResults.Json(customer);
+                var customers = await db.QueryAsync<Customer>("SELECT * FROM Customers where Deleted IS NULL");
+                return TypedResults.Json(customers);
+            });
+
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Customer>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var customer = await db.QueryFirstOrDefaultAsync<Customer>("SELECT * FROM Customers WHERE id = @id", new { id });
+                // return TypedResults.Json(customer);
+                return customer is null ? TypedResults.NotFound() : TypedResults.Json(customer);
             });
 
             group.MapPost("/", async Task<Results<Created<Customer>, NotFound, ValidationProblem>> (IValidator<Customer> validator, IDbConnection db, Customer customer) =>
@@ -60,9 +73,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // update customer in database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    UPDATE Customers
-                    SET Name = @Name
-                    WHERE Id = @Id", customer);
+                    UPDATE Customers SET FirstName = @FirstName, LastName = @LastName, Email = @Email WHERE id = @Id", customer);
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
@@ -86,7 +97,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 var rowsAffected = await db.ExecuteAsync(@"
                     UPDATE Customers
                     SET Deleted = datetime('now')
-                    WHERE Id = @Id", new { Id = number });
+                    WHERE id = @id", new { id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

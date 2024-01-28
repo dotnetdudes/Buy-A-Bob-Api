@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace Dotnetdudes.Buyabob.Api.Validators
 {
-    public class CartStatusValidator : AbstractValidator<CartStatus>
+    public class StatusValidator : AbstractValidator<Status>
     {
-        public CartStatusValidator()
+        public StatusValidator()
         {
             RuleFor(x => x.Name).NotEmpty();
         }

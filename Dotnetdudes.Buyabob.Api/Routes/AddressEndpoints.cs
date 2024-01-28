@@ -12,14 +12,55 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var addresses = await db.QueryAsync<Address>("SELECT * FROM Addresses where Deleted IS NOT NULL");
+                var addresses = await db.QueryAsync<Address>("SELECT * FROM Addresses");
                 return TypedResults.Json(addresses);
             });
 
-            group.MapGet("/{id}", async (IDbConnection db, int id) =>
+            group.MapGet("/active", async (IDbConnection db) =>
             {
-                var address = await db.QueryFirstOrDefaultAsync<Address>("SELECT * FROM Addresses WHERE Id = @id", new { id });
-                return TypedResults.Json(address);
+                var addresses = await db.QueryAsync<Address>("SELECT * FROM Addresses where Deleted IS NULL");
+                return TypedResults.Json(addresses);
+            });
+
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Address>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var address = await db.QueryFirstOrDefaultAsync<Address>("SELECT * FROM Addresses WHERE id = @id", new { id });
+                // return TypedResults.Json(address);
+                return address is null ? TypedResults.NotFound() : TypedResults.Json(address);
+            });
+
+            // get by customer id
+            group.MapGet("/customer/{id}", async Task<Results<JsonHttpResult<IEnumerable<Address>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var addresses = await db.QueryAsync<Address>("SELECT * FROM Addresses WHERE CustomerId = @id", new { id });
+                // return TypedResults.Json(addresses);
+                return addresses is null ? TypedResults.NotFound() : TypedResults.Json(addresses);
+            });
+            
+            // get active by customer id
+            group.MapGet("/customer/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Address>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
+                var addresses = await db.QueryAsync<Address>("SELECT * FROM Addresses WHERE CustomerId = @id AND Deleted IS NULL", new { id });
+                // return TypedResults.Json(addresses);
+                return addresses is null ? TypedResults.NotFound() : TypedResults.Json(addresses);
             });
 
             group.MapPost("/", async Task<Results<Created<Address>, NotFound, ValidationProblem>> (IValidator<Address> validator, IDbConnection db, Address address) =>
@@ -56,11 +97,12 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.ValidationProblem(validationResult.ToDictionary());
                 }
+                address.Updated = DateTime.UtcNow;
                 // update address in database
                 var rowsAffected = await db.ExecuteAsync(@"
                     UPDATE Addresses
-                    SET Street = @Street, City = @City, State = @State, Postcode = @Postcode, Country = @Country
-                    WHERE Id = @number", address);
+                    SET Street = @Street, City = @City, State = @State, Postcode = @Postcode, Country = @Country, Updated = @Updated
+                    WHERE id = @Id", address);
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
@@ -81,7 +123,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete address from database
-                var rowsAffected = await db.ExecuteAsync("DELETE FROM Addresses WHERE Id = @id", new { number });
+                var rowsAffected = await db.ExecuteAsync("UPDATE Addresses SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id});
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

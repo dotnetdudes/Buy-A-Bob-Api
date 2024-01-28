@@ -6,20 +6,33 @@ using System.Data;
 
 namespace Dotnetdudes.Buyabob.Api.Routes
 {
-    public static  class ProductEndPoints
+    public static  class ProductEndpoints
     {
-        public static RouteGroupBuilder MapProductEndPoints(this RouteGroupBuilder group)
+        public static RouteGroupBuilder MapProductEndpoints(this RouteGroupBuilder group)
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var products = await db.QueryAsync<Product>("SELECT * FROM Products where Deleted IS NOT NULL");
+                var products = await db.QueryAsync<Product>("SELECT * FROM Products");
                 return TypedResults.Json(products);
             });
 
-            group.MapGet("/{id}", async (IDbConnection db, int id) =>
+            group.MapGet("/active", async (IDbConnection db) =>
             {
+                var products = await db.QueryAsync<Product>("SELECT * FROM Products where Deleted IS NULL");
+                return TypedResults.Json(products);
+            });
+
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Product>, NotFound, BadRequest>> (IDbConnection db, string id) =>
+            {
+                // validate id
+                bool success = int.TryParse(id, out int number);
+                if (!success)
+                {
+                    return TypedResults.BadRequest();
+                }
                 var product = await db.QueryFirstOrDefaultAsync<Product>("SELECT * FROM Products WHERE Id = @id", new { id });
-                return TypedResults.Json(product);
+                // return TypedResults.Json(product);
+                return product is null ? TypedResults.NotFound() : TypedResults.Json(product);
             });
 
             group.MapPost("/", async Task<Results<Created<Product>, NotFound, ValidationProblem>> (IValidator<Product> validator, IDbConnection db, Product product) =>
@@ -56,11 +69,12 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.ValidationProblem(validationResult.ToDictionary());
                 }
+                product.Updated = DateTime.Now;
                 // update product in database
                 var rowsAffected = await db.ExecuteAsync(@"
                     UPDATE Products
                     SET Name = @Name, Description = @Description, Price = @Price, ImageUrl = @ImageUrl
-                    WHERE Id = @Id", product);
+                    WHERE id = @Id", product);
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
@@ -81,9 +95,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete product from database
-                var rowsAffected = await db.ExecuteAsync(@"
-                    DELETE FROM Products
-                    WHERE Id = @number", new { number });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE Products SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
