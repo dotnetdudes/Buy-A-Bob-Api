@@ -29,11 +29,12 @@ builder.Services.AddSwaggerGen();
 
 // add authentication with JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
         // keycloak client settings
+        options.MetadataAddress = "https://identity.dotnetdudes.com/auth/realms/dotnetdudes/.well-known/openid-configuration";
         options.Authority = "https://identity.dotnetdudes.com/realms/dotnetdudes";
-        options.Audience = "account";
+        options.Audience = "buyabob-dev-web";
     });
 
 // add postgressql database connection
