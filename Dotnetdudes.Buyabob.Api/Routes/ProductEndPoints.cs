@@ -18,7 +18,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
-                var products = await db.QueryAsync<Product>("SELECT * FROM Products where Deleted IS NULL");
+                var products = await db.QueryAsync<Product>("SELECT * FROM Products where Deleted IS NULL and IsSold = 0");
                 return TypedResults.Json(products);
             });
 

@@ -27,6 +27,18 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "Bobrigins",
+                      policy  =>
+                      {
+                          policy.WithOrigins("http://localhost:8080")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                      });
+});
+
 // add authentication with JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
@@ -76,7 +88,9 @@ app.UseExceptionHandler(exceptionHandlerApp
             }            
             await Results.Problem().ExecuteAsync(context!);
         })
-    ) ;               
+    ) ;    
+
+app.UseCors("Bobrigins");           
 
 app.MapGroup("/api/customers").MapCustomerEndpoints().WithTags("Customers");
 app.MapGroup("/api/address").MapAddressEndpoints().WithTags("Address");
