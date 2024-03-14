@@ -46,8 +46,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 // insert tag into database
                 var id = await db.ExecuteScalarAsync<int>(@"
                     INSERT INTO Tags (Name)
-                    VALUES (@Name);
-                    SELECT last_insert_rowid();", tag);
+                    VALUES (@Name) returning id;", tag);
                 return TypedResults.Created($"/tags/{tag.Id}", tag);
             });
 

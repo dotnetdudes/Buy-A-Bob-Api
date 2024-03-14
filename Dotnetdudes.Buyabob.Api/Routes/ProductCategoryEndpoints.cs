@@ -102,8 +102,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 // insert productCategory into database
                 var id = await db.ExecuteScalarAsync<int>(@"
                     INSERT INTO ProductCategories (ProductId, CategoryId)
-                    VALUES (@ProductId, @CategoryId);
-                    SELECT last_insert_rowid();", productCategory);
+                    VALUES (@ProductId, @CategoryId) returning id;", productCategory);
                 return TypedResults.Created($"/productCategories/{productCategory.Id}", productCategory);
             });
 

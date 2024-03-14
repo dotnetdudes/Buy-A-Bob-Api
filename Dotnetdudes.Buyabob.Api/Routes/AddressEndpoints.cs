@@ -74,8 +74,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 // insert address into database
                 var id = await db.ExecuteScalarAsync<int>(@"
                     INSERT INTO Addresses (Street, City, State, Postcode, Country)
-                    VALUES (@Street, @City, @State, @Postcode, @Country);
-                    SELECT last_insert_rowid();", address);
+                    VALUES (@Street, @City, @State, @Postcode, @Country) returning id;", address);
                 return TypedResults.Created($"/addresses/{address.Id}", address);
             });
 

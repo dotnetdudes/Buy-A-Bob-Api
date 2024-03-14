@@ -46,8 +46,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 // insert shippingType into database
                 var id = await db.ExecuteScalarAsync<int>(@"
                     INSERT INTO ShippingTypes (Name)
-                    VALUES (@Name);
-                    SELECT last_insert_rowid();", shippingType);
+                    VALUES (@Name) returning id;", shippingType);
                 return TypedResults.Created($"/shippingTypes/{shippingType.Id}", shippingType);
             });
 

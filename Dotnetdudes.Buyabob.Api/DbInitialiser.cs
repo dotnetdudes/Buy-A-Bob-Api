@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using Dotnetdudes.Buyabob.Api.Models;
 using System.Data;
 
 namespace Dotnetdudes.Buyabob.Api
@@ -23,7 +22,7 @@ namespace Dotnetdudes.Buyabob.Api
                         FirstName VARCHAR(120) NOT NULL,
                         LastName VARCHAR(120) NOT NULL,
                         Email VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
                         Updated TIMESTAMP,
                         Deleted TIMESTAMP
                     );");
@@ -39,7 +38,7 @@ namespace Dotnetdudes.Buyabob.Api
                         State VARCHAR(120) NOT NULL,
                         Postcode CHAR(4) NOT NULL,
                         Country VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
                         Updated TIMESTAMP,
                         Deleted TIMESTAMP
                     );
@@ -50,7 +49,7 @@ namespace Dotnetdudes.Buyabob.Api
                     (
                         id SERIAL PRIMARY KEY,
                         Name VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
                         Updated TIMESTAMP,
                         Deleted TIMESTAMP
                     );");
@@ -68,9 +67,9 @@ namespace Dotnetdudes.Buyabob.Api
                         Depth NUMERIC(6,2) NOT NULL,
                         Height NUMERIC(6,2) NOT NULL,
                         Quantity INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Updated TIMESTAMP NOT NULL,
-                        IsSold BOOLEAN NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
+                        Updated TIMESTAMP,
+                        IsSold BOOLEAN NOT NULL DEFAULT FALSE,
                         SoldDate TIMESTAMP,
                         Deleted TIMESTAMP
                     );");
@@ -82,7 +81,7 @@ namespace Dotnetdudes.Buyabob.Api
                         id SERIAL PRIMARY KEY,
                         ProductId INTEGER NOT NULL,
                         CategoryId INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
                         Deleted TIMESTAMP,
                         FOREIGN KEY(ProductId) REFERENCES Products(Id) ON DELETE CASCADE,
                         FOREIGN KEY(CategoryId) REFERENCES Categories(Id) ON DELETE CASCADE
@@ -93,7 +92,7 @@ namespace Dotnetdudes.Buyabob.Api
                     (
                         id SERIAL PRIMARY KEY,
                         Name VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
                         Updated TIMESTAMP,
                         Deleted TIMESTAMP
                     );");
@@ -104,7 +103,7 @@ namespace Dotnetdudes.Buyabob.Api
                         id SERIAL PRIMARY KEY,
                         ProductId INTEGER NOT NULL,
                         TagId INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
                         Updated TIMESTAMP,
                         Deleted TIMESTAMP,
                         FOREIGN KEY(ProductId) REFERENCES Products(Id) ON DELETE CASCADE,
@@ -116,7 +115,7 @@ namespace Dotnetdudes.Buyabob.Api
                     (
                         id SERIAL PRIMARY KEY,
                         Name VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
                         Updated TIMESTAMP,
                         Deleted TIMESTAMP
                     );");
@@ -127,7 +126,7 @@ namespace Dotnetdudes.Buyabob.Api
                         id SERIAL PRIMARY KEY,
                         OrderId INTEGER NOT NULL,
                         AddressId INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
                         Deleted TIMESTAMP
                     );");
 
@@ -136,7 +135,7 @@ namespace Dotnetdudes.Buyabob.Api
                     (
                         id SERIAL PRIMARY KEY,
                         Name VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
                         Updated TIMESTAMP,
                         Deleted TIMESTAMP
                     );");
@@ -147,7 +146,7 @@ namespace Dotnetdudes.Buyabob.Api
                         id SERIAL PRIMARY KEY,
                         CustomerId INTEGER NOT NULL,
                         StatusId INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
                         Updated TIMESTAMP,
                         Deleted TIMESTAMP,
                         FOREIGN KEY(CustomerId) REFERENCES Customers(Id) ON DELETE CASCADE,
@@ -161,7 +160,7 @@ namespace Dotnetdudes.Buyabob.Api
                         CartId INTEGER NOT NULL,
                         ProductId INTEGER NOT NULL,
                         Quantity INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
+                        Created TIMESTAMP default (timezone('utc', now())),
                         Updated TIMESTAMP,
                         Deleted TIMESTAMP,
                         FOREIGN KEY(ProductId) REFERENCES Products(Id) ON DELETE CASCADE,
@@ -182,7 +181,7 @@ namespace Dotnetdudes.Buyabob.Api
                         ContactName VARCHAR(120),
                         ContactPhone VARCHAR(120),
                         Total NUMERIC(10,2) NOT NULL,
-                        DatePurchased TIMESTAMP NOT NULL,
+                        DatePurchased TIMESTAMP default (timezone('utc', now())),
                         DateShipped TIMESTAMP,
                         Deleted TIMESTAMP,
                         FOREIGN KEY(CartId) REFERENCES Carts(Id) ON DELETE CASCADE,
