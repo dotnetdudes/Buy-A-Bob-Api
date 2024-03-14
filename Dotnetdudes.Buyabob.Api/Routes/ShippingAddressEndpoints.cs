@@ -72,8 +72,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 // insert shippingAddress into database
                 var id = await db.ExecuteScalarAsync<int>(@"
                     INSERT INTO ShippingAddresses (Name)
-                    VALUES (@Name);
-                    SELECT last_insert_rowid();", shippingAddress);
+                    VALUES (@Name) returning id;", shippingAddress);
                 return TypedResults.Created($"/shippingAddresses/{shippingAddress.Id}", shippingAddress);
             });
             

@@ -158,8 +158,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 // insert order into database
                 var id = await db.ExecuteScalarAsync<int>(@"
                     INSERT INTO Orders (UserId, ProductId, Quantity)
-                    VALUES (@UserId, @ProductId, @Quantity);
-                    SELECT last_insert_rowid();", order);
+                    VALUES (@UserId, @ProductId, @Quantity) returning id;", order);
                 return TypedResults.Created($"/orders/{order.Id}", order);
             });
 

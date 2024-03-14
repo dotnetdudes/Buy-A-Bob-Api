@@ -73,8 +73,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 // insert cartItem into database
                 var id = await db.ExecuteScalarAsync<int>(@"
                     INSERT INTO CartItems (CartId, ProductId, Quantity)
-                    VALUES (@CartId, @ProductId, @Quantity);
-                    SELECT last_insert_rowid();", cartItem);
+                    VALUES (@CartId, @ProductId, @Quantity) returning id;", cartItem);
                 return TypedResults.Created($"/cartItems/{cartItem.Id}", cartItem);
             });
 

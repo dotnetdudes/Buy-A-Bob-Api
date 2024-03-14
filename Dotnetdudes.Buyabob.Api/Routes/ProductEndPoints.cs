@@ -6,7 +6,7 @@ using System.Data;
 
 namespace Dotnetdudes.Buyabob.Api.Routes
 {
-    public static  class ProductEndpoints
+    public static class ProductEndpoints
     {
         public static RouteGroupBuilder MapProductEndpoints(this RouteGroupBuilder group)
         {
@@ -14,7 +14,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
             {
                 var products = await db.QueryAsync<Product>("SELECT * FROM Products");
                 return TypedResults.Json(products);
-            });
+            }).RequireAuthorization();
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
@@ -35,21 +35,35 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 return product is null ? TypedResults.NotFound() : TypedResults.Json(product);
             });
 
-            group.MapPost("/", async Task<Results<Created<Product>, NotFound, ValidationProblem>> (IValidator<Product> validator, IDbConnection db, Product product) =>
+            group.MapPost("/", async Task<Results<Ok<int>, ValidationProblem>> (IValidator<Product> validator, IDbConnection db, IConfiguration config, IFormFile file, string name, decimal price, string description, decimal weight, decimal width, decimal height, decimal depth, int quantity) =>
             {
+                string dir = "uploads/";
+                dir = config["FileSaveOptions:SaveDirectory"] ?? dir;
+                // create directory if it doesn't exist
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                // rename file in secure fashion
+                string fileName = Path.GetRandomFileName() + Path.GetExtension(file.FileName);
+                var filePath = Path.Combine(dir, fileName);
+                // save file to disk
+                using var stream = File.OpenWrite(filePath);
+                await file.CopyToAsync(stream);
                 // validate product
+                var product = new Product { Name = name, Description = description,ImageUrl= fileName, Price = price, Weight = weight, Width = width, Height = height, Depth = depth, Quantity = quantity, Created = DateTime.UtcNow };
                 var validationResult = await validator.ValidateAsync(product);
                 if (!validationResult.IsValid)
                 {
                     return TypedResults.ValidationProblem(validationResult.ToDictionary());
                 }
-                // insert product into database
+                // write database record
                 var id = await db.ExecuteScalarAsync<int>(@"
-                    INSERT INTO Products (Name, Description, Price, ImageUrl)
-                    VALUES (@Name, @Description, @Price, @ImageUrl);
-                    SELECT last_insert_rowid();", product);
-                return TypedResults.Created($"/products/{product.Id}", product);
-            });
+                    INSERT INTO Products (Name, Description, Price, ImageUrl, Weight, Width, Height, Depth, Quantity, Created)
+                    VALUES (@Name, @Description, @Price, @ImageUrl, @Weight, @Width, @Height, @Depth, @Quantity, @Created) returning id;", product);
+                return TypedResults.Ok(id);
+            }).DisableAntiforgery();
 
             group.MapPut("/{id}", async Task<Results<Ok<Product>, NotFound, ValidationProblem, BadRequest>> (IValidator<Product> validator, IDbConnection db, string id, Product product) =>
             {

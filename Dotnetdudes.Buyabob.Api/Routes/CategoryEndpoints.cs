@@ -46,8 +46,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 // insert category into database
                 var id = await db.ExecuteScalarAsync<int>(@"
                     INSERT INTO Categories (Name)
-                    VALUES (@Name);
-                    SELECT last_insert_rowid();", category);
+                    VALUES (@Name) returning id;", category);
                 return TypedResults.Created($"/categories/{category.Id}", category);
             });
 
