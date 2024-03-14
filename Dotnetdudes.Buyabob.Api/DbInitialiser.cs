@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using Dotnetdudes.Buyabob.Api.Models;
 using System.Data;
 
 namespace Dotnetdudes.Buyabob.Api

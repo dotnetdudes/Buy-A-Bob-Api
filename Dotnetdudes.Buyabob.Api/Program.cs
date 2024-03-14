@@ -4,14 +4,11 @@ using FluentValidation;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 using Serilog;
 using Serilog.Events;
 using System.Data;
-using System.Text;
-using System.Text.Json;
 
 Log.Logger = new LoggerConfiguration()
    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -101,8 +98,8 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-string defaultSaveDirectory = "/uploads";
-builder.Configuration.Bind("FileSaveOptions", new FileSaveOptions { SaveDirectory = defaultSaveDirectory });
+// string defaultSaveDirectory = "/uploads";
+// builder.Configuration.Bind("FileSaveOptions", new FileSaveOptions { SaveDirectory = defaultSaveDirectory });
 
 var app = builder.Build();
 
