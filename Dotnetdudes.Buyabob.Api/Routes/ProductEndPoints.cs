@@ -14,7 +14,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
             {
                 var products = await db.QueryAsync<Product>("SELECT * FROM Products");
                 return TypedResults.Json(products);
-            }).RequireAuthorization();
+            });
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
@@ -63,7 +63,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     INSERT INTO Products (Name, Description, Price, ImageUrl, Weight, Width, Height, Depth, Quantity, Created)
                     VALUES (@Name, @Description, @Price, @ImageUrl, @Weight, @Width, @Height, @Depth, @Quantity, @Created) returning id;", product);
                 return TypedResults.Ok(id);
-            }).DisableAntiforgery();
+            }).RequireAuthorization();
 
             group.MapPut("/{id}", async Task<Results<Ok<Product>, NotFound, ValidationProblem, BadRequest>> (IValidator<Product> validator, IDbConnection db, string id, Product product) =>
             {
@@ -94,7 +94,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.NotFound();
                 }
                 return TypedResults.Ok(product);
-            });
+            }).RequireAuthorization();
 
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
@@ -115,7 +115,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.NotFound();
                 }
                 return TypedResults.NoContent();
-            });
+            }).RequireAuthorization();
 
             return group;
         }

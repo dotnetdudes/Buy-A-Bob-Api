@@ -64,8 +64,8 @@ builder.Services.AddCors(options =>
                       policy =>
                       {
                           policy.WithOrigins(builder.Configuration["Cors:AllowedOrigins"] ?? "http://localhost:8080")
-                          .WithOrigins(builder.Configuration["Cors:AllowedOrigins"] ?? "http://localhost:8080")
-                          .WithHeaders(builder.Configuration["Cors:AllowedHeaders"] ?? "*").WithMethods(builder.Configuration["Cors:AllowedMethods"] ?? "*");
+                          .WithHeaders("Authorization", "Content-Type", "Accept", "X-XSRF-TOKEN").WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                          .AllowCredentials();
                       });
 });
 
@@ -97,9 +97,6 @@ builder.Services.AddAntiforgery();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-
-// string defaultSaveDirectory = "/uploads";
-// builder.Configuration.Bind("FileSaveOptions", new FileSaveOptions { SaveDirectory = defaultSaveDirectory });
 
 var app = builder.Build();
 
@@ -141,16 +138,24 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.UseAntiforgery();
+// app.UseAntiforgery();
+
+app.MapGet("/", () => "Hello World!");
+
+// app.MapGet("/api/antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
+// {
+//     var tokens = forgeryService.GetAndStoreTokens(context);
+//     context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
+//             new CookieOptions { HttpOnly = false });
+
+//     return Results.Ok();
+// }).WithTags("Anti Forgery").RequireAuthorization();
 
 app.MapGet("/api/antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
 {
     var tokens = forgeryService.GetAndStoreTokens(context);
-    context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
-            new CookieOptions { HttpOnly = false });
-
-    return Results.Ok();
-}).WithTags("Anti Forgery"); // .RequireAuthorization();
+    return Results.Ok(tokens.RequestToken!);
+}).RequireAuthorization().WithTags("Anti Forgery");
 
 app.MapGroup("/api/customers").MapCustomerEndpoints().WithTags("Customers");
 app.MapGroup("/api/address").MapAddressEndpoints().WithTags("Address");
@@ -169,8 +174,3 @@ app.MapGroup("/api/shippingtype").MapShippingTypeEndpoints().WithTags("Shipping 
 app.Run();
 
 public partial class Program { }
-
-public record FileSaveOptions
-{
-    public string? SaveDirectory { get; init; }
-}
