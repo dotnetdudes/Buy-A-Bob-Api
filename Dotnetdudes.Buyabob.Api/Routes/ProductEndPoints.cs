@@ -3,6 +3,7 @@ using Dotnetdudes.Buyabob.Api.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Data;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Dotnetdudes.Buyabob.Api.Routes
 {
@@ -12,13 +13,13 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var products = await db.QueryAsync<Product>("SELECT * FROM Products");
+                var products = await db.QueryAsync<Product>("SELECT * FROM products");
                 return TypedResults.Json(products);
             });
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
-                var products = await db.QueryAsync<Product>("SELECT * FROM Products where Deleted IS NULL and IsSold = 0");
+                var products = await db.QueryAsync<Product>("SELECT * FROM products where deleted is null and issold = false");
                 return TypedResults.Json(products);
             });
 
@@ -30,12 +31,12 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var product = await db.QueryFirstOrDefaultAsync<Product>("SELECT * FROM Products WHERE Id = @id", new { id });
+                var product = await db.QueryFirstOrDefaultAsync<Product>("SELECT * FROM products where id = @id", new { id });
                 // return TypedResults.Json(product);
                 return product is null ? TypedResults.NotFound() : TypedResults.Json(product);
             });
 
-            group.MapPost("/", async Task<Results<Ok<int>, ValidationProblem>> (IValidator<Product> validator, IDbConnection db, IConfiguration config, IFormFile file, string name, decimal price, string description, decimal weight, decimal width, decimal height, decimal depth, int quantity) =>
+            group.MapPost("/", async Task<Results<Ok<Product>, ValidationProblem>> (IValidator<Product> validator, IDbConnection db, IConfiguration config, IFormFile? file, [FromForm] string name, [FromForm] decimal price, [FromForm] string description, [FromForm] decimal weight, [FromForm] decimal width, [FromForm] decimal height, [FromForm] decimal depth, [FromForm] int quantity) =>
             {
                 string dir = "uploads/";
                 dir = config["FileSaveOptions:SaveDirectory"] ?? dir;
@@ -46,6 +47,10 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
 
                 // rename file in secure fashion
+                if (file is null)
+                {
+                    return TypedResults.ValidationProblem(new Dictionary<string, string[]> { { "file", new string[] { "File is required" } } });
+                }
                 string fileName = Path.GetRandomFileName() + Path.GetExtension(file.FileName);
                 var filePath = Path.Combine(dir, fileName);
                 // save file to disk
@@ -60,9 +65,10 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // write database record
                 var id = await db.ExecuteScalarAsync<int>(@"
-                    INSERT INTO Products (Name, Description, Price, ImageUrl, Weight, Width, Height, Depth, Quantity, Created)
+                    INSERT INTO products (name, description, price, imageurl, weight, width, height, depth, quantity, created)
                     VALUES (@Name, @Description, @Price, @ImageUrl, @Weight, @Width, @Height, @Depth, @Quantity, @Created) returning id;", product);
-                return TypedResults.Ok(id);
+                product.Id = id;
+                return TypedResults.Ok(product);
             }).RequireAuthorization();
 
             group.MapPut("/{id}", async Task<Results<Ok<Product>, NotFound, ValidationProblem, BadRequest>> (IValidator<Product> validator, IDbConnection db, string id, Product product) =>
@@ -83,11 +89,11 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.ValidationProblem(validationResult.ToDictionary());
                 }
-                product.Updated = DateTime.Now;
+                product.Updated = DateTime.UtcNow;
                 // update product in database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    UPDATE Products
-                    SET Name = @Name, Description = @Description, Price = @Price, ImageUrl = @ImageUrl
+                    UPDATE products
+                    SET name = @Name, description = @Description, price = @Price, weight = @Weight, width = @Width, height = @Height, depth = @Depth, quantity = @Quantity, updated = @Updated
                     WHERE id = @Id", product);
                 if (rowsAffected == 0)
                 {
@@ -109,7 +115,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete product from database
-                var rowsAffected = await db.ExecuteAsync(@"UPDATE Products SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE products SET deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

@@ -14,13 +14,13 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var customers = await db.QueryAsync<Customer>("SELECT * FROM Customers");
+                var customers = await db.QueryAsync<Customer>("SELECT * FROM customers");
                 return TypedResults.Json(customers);
             });
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
-                var customers = await db.QueryAsync<Customer>("SELECT * FROM Customers where Deleted IS NULL");
+                var customers = await db.QueryAsync<Customer>("SELECT * FROM customers where deleted IS NULL");
                 return TypedResults.Json(customers);
             });
 
@@ -32,7 +32,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var customer = await db.QueryFirstOrDefaultAsync<Customer>("SELECT * FROM Customers WHERE id = @id", new { id });
+                var customer = await db.QueryFirstOrDefaultAsync<Customer>("SELECT * FROM customers WHERE id = @id", new { id });
                 // return TypedResults.Json(customer);
                 return customer is null ? TypedResults.NotFound() : TypedResults.Json(customer);
             });
@@ -47,7 +47,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // insert customer into database
                 var id = await db.ExecuteScalarAsync<int>(@"
-                    INSERT INTO Customers (Name)
+                    INSERT INTO customers (name)
                     VALUES (@Name) returning id;", customer);
                 return TypedResults.Created($"/customers/{customer.Id}", customer);
             });
@@ -72,7 +72,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // update customer in database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    UPDATE Customers SET FirstName = @FirstName, LastName = @LastName, Email = @Email WHERE id = @Id", customer);
+                    UPDATE customers SET firstname = @FirstName, lastname = @LastName, email = @Email WHERE id = @Id", customer);
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
@@ -94,9 +94,9 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // delete customer from database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    UPDATE Customers
-                    SET Deleted = datetime('now')
-                    WHERE id = @id", new { id });
+                    UPDATE customers
+                    SET deleted = @date
+                    WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

@@ -12,14 +12,14 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories");
-                return TypedResults.Json(productCategories);
+                var productcategories = await db.QueryAsync<ProductCategory>("SELECT * FROM productcategories");
+                return TypedResults.Json(productcategories);
             });
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
-                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories where Deleted IS NULL");
-                return TypedResults.Json(productCategories);
+                var productcategories = await db.QueryAsync<ProductCategory>("SELECT * FROM productcategories where deleted IS NULL");
+                return TypedResults.Json(productcategories);
             });
 
             group.MapGet("/{id}", async Task<Results<JsonHttpResult<ProductCategory>, NotFound, BadRequest>>(IDbConnection db, string id) =>
@@ -30,7 +30,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var productCategory = await db.QueryFirstOrDefaultAsync<ProductCategory>("SELECT * FROM ProductCategories WHERE id = @id", new { id });
+                var productCategory = await db.QueryFirstOrDefaultAsync<ProductCategory>("SELECT * FROM productcategories WHERE id = @id", new { id });
                 
                 return productCategory is null ? TypedResults.NotFound() : TypedResults.Json(productCategory);
             });
@@ -44,9 +44,9 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories WHERE ProductId = @id", new { id });
+                var productcategories = await db.QueryAsync<ProductCategory>("SELECT * FROM productcategories WHERE productid = @id", new { id });
                 
-                return productCategories is null ? TypedResults.NotFound() : TypedResults.Json(productCategories);
+                return productcategories is null ? TypedResults.NotFound() : TypedResults.Json(productcategories);
             });
 
             // get active by product id
@@ -58,9 +58,9 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories WHERE ProductId = @id AND Deleted IS NULL", new { id });
+                var productcategories = await db.QueryAsync<ProductCategory>("SELECT * FROM productcategories WHERE productid = @id AND deleted IS NULL", new { id });
                 
-                return productCategories is null ? TypedResults.NotFound() : TypedResults.Json(productCategories);
+                return productcategories is null ? TypedResults.NotFound() : TypedResults.Json(productcategories);
             });
 
             // get by category id
@@ -72,9 +72,9 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories WHERE CategoryId = @id", new { id });
+                var productcategories = await db.QueryAsync<ProductCategory>("SELECT * FROM productcategories WHERE categoryid = @id", new { id });
                 
-                return productCategories is null ? TypedResults.NotFound() : TypedResults.Json(productCategories);
+                return productcategories is null ? TypedResults.NotFound() : TypedResults.Json(productcategories);
             });
 
             // get active by category id
@@ -86,9 +86,9 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var productCategories = await db.QueryAsync<ProductCategory>("SELECT * FROM ProductCategories WHERE CategoryId = @id AND Deleted IS NULL", new { id });
+                var productcategories = await db.QueryAsync<ProductCategory>("SELECT * FROM productcategories WHERE categoryid = @id AND deleted IS NULL", new { id });
                 
-                return productCategories is null ? TypedResults.NotFound() : TypedResults.Json(productCategories);
+                return productcategories is null ? TypedResults.NotFound() : TypedResults.Json(productcategories);
             });
 
             group.MapPost("/", async Task<Results<Created<ProductCategory>, NotFound, ValidationProblem>> (IValidator<ProductCategory> validator, IDbConnection db, ProductCategory productCategory) =>
@@ -101,9 +101,9 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // insert productCategory into database
                 var id = await db.ExecuteScalarAsync<int>(@"
-                    INSERT INTO ProductCategories (ProductId, CategoryId)
+                    INSERT INTO productcategories (productid, categoryid)
                     VALUES (@ProductId, @CategoryId) returning id;", productCategory);
-                return TypedResults.Created($"/productCategories/{productCategory.Id}", productCategory);
+                return TypedResults.Created($"/productcategories/{productCategory.Id}", productCategory);
             });
 
             group.MapPut("/{id}", async Task<Results<Ok<ProductCategory>, NotFound, ValidationProblem, BadRequest>> (IValidator<ProductCategory> validator, IDbConnection db, string id, ProductCategory productCategory) =>
@@ -126,8 +126,8 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // update productCategory in database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    UPDATE ProductCategories
-                    SET ProductId = @ProductId, CategoryId = @CategoryId
+                    UPDATE productcategories
+                    SET productid = @ProductId, categoryid = @CategoryId
                     WHERE id = @Id", productCategory);
                 if (rowsAffected == 0)
                 {
@@ -149,7 +149,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete productCategory from database
-                var rowsAffected = await db.ExecuteAsync(@"UPDATE ProductCategories SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE productcategories SET deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

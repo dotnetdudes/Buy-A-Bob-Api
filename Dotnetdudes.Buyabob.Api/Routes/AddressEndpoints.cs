@@ -12,13 +12,13 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var addresses = await db.QueryAsync<Address>("SELECT * FROM Addresses");
+                var addresses = await db.QueryAsync<Address>("SELECT * FROM addresses");
                 return TypedResults.Json(addresses);
             });
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
-                var addresses = await db.QueryAsync<Address>("SELECT * FROM Addresses where Deleted IS NULL");
+                var addresses = await db.QueryAsync<Address>("SELECT * FROM addresses where deleted IS NULL");
                 return TypedResults.Json(addresses);
             });
 
@@ -30,7 +30,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var address = await db.QueryFirstOrDefaultAsync<Address>("SELECT * FROM Addresses WHERE id = @id", new { id });
+                var address = await db.QueryFirstOrDefaultAsync<Address>("SELECT * FROM addresses WHERE id = @id", new { id });
                 // return TypedResults.Json(address);
                 return address is null ? TypedResults.NotFound() : TypedResults.Json(address);
             });
@@ -44,7 +44,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var addresses = await db.QueryAsync<Address>("SELECT * FROM Addresses WHERE CustomerId = @id", new { id });
+                var addresses = await db.QueryAsync<Address>("SELECT * FROM addresses WHERE customerid = @id", new { id });
                 // return TypedResults.Json(addresses);
                 return addresses is null ? TypedResults.NotFound() : TypedResults.Json(addresses);
             });
@@ -58,7 +58,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var addresses = await db.QueryAsync<Address>("SELECT * FROM Addresses WHERE CustomerId = @id AND Deleted IS NULL", new { id });
+                var addresses = await db.QueryAsync<Address>("SELECT * FROM addresses WHERE customerid = @id AND deleted IS NULL", new { id });
                 // return TypedResults.Json(addresses);
                 return addresses is null ? TypedResults.NotFound() : TypedResults.Json(addresses);
             });
@@ -73,7 +73,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // insert address into database
                 var id = await db.ExecuteScalarAsync<int>(@"
-                    INSERT INTO Addresses (Street, City, State, Postcode, Country)
+                    INSERT INTO addresses (street, city, state, postcode, country)
                     VALUES (@Street, @City, @State, @Postcode, @Country) returning id;", address);
                 return TypedResults.Created($"/addresses/{address.Id}", address);
             });
@@ -99,8 +99,8 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 address.Updated = DateTime.UtcNow;
                 // update address in database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    UPDATE Addresses
-                    SET Street = @Street, City = @City, State = @State, Postcode = @Postcode, Country = @Country, Updated = @Updated
+                    UPDATE addresses
+                    SET street = @Street, city = @City, state = @State, postcode = @Postcode, country = @Country, updated = @Updated
                     WHERE id = @Id", address);
                 if (rowsAffected == 0)
                 {
@@ -122,7 +122,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete address from database
-                var rowsAffected = await db.ExecuteAsync("UPDATE Addresses SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id});
+                var rowsAffected = await db.ExecuteAsync("UPDATE addresses SET deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id});
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

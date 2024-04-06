@@ -4,7 +4,9 @@ using FluentValidation;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.HttpOverrides;
 using Npgsql;
 using Serilog;
 using Serilog.Events;
@@ -92,7 +94,7 @@ builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => polic
 builder.Services.AddScoped<IDbConnection>(provider =>
     new NpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddAntiforgery();
+builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
 
 builder.Services.AddProblemDetails();
 
@@ -132,24 +134,27 @@ app.UseExceptionHandler(exceptionHandlerApp
     })
     );
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+           Path.Combine(builder.Environment.ContentRootPath, "uploads")),
+    RequestPath = "/uploads"
+});
+
 app.UseCors("Bobrigins");
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
-// app.UseAntiforgery();
+app.UseAntiforgery();
 
 app.MapGet("/", () => "Hello World!");
-
-// app.MapGet("/api/antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
-// {
-//     var tokens = forgeryService.GetAndStoreTokens(context);
-//     context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
-//             new CookieOptions { HttpOnly = false });
-
-//     return Results.Ok();
-// }).WithTags("Anti Forgery").RequireAuthorization();
 
 app.MapGet("/api/antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
 {
