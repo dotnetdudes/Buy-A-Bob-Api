@@ -27,3 +27,4 @@
 uploads
 uploads/**
 appsettings.Production.json
+appsettings.Production.json.bak
