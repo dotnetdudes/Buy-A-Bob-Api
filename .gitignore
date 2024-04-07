@@ -26,3 +26,4 @@
 !.git/refs/heads/**
 uploads
 uploads/**
+appSettings.Production.json
