@@ -7,7 +7,7 @@ namespace Dotnetdudes.Buyabob.Api.Validators
     {
         public ShippingAddressValidator()
         {
-            RuleFor(x => x.OrderId).NotEmpty();
+            RuleFor(x => x.CustomerId).NotEmpty();
             RuleFor(x => x.AddressId).NotEmpty();
         }
     }

@@ -12,13 +12,13 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var categories = await db.QueryAsync<Category>("SELECT * FROM Categories");
+                var categories = await db.QueryAsync<Category>("SELECT * FROM categories");
                 return TypedResults.Json(categories);
             });
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
-                var categories = await db.QueryAsync<Category>("SELECT * FROM Categories where Deleted IS NULL");
+                var categories = await db.QueryAsync<Category>("SELECT * FROM categories where deleted IS NULL");
                 return TypedResults.Json(categories);
             });
 
@@ -30,7 +30,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var category = await db.QueryFirstOrDefaultAsync<Category>("SELECT * FROM Categories WHERE id = @id", new { id });
+                var category = await db.QueryFirstOrDefaultAsync<Category>("SELECT * FROM categories WHERE id = @id", new { id });
                 // return TypedResults.Json(category);
                 return category is null ? TypedResults.NotFound() : TypedResults.Json(category);
             });
@@ -45,9 +45,8 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // insert category into database
                 var id = await db.ExecuteScalarAsync<int>(@"
-                    INSERT INTO Categories (Name)
-                    VALUES (@Name);
-                    SELECT last_insert_rowid();", category);
+                    INSERT INTO categories (name)
+                    VALUES (@Name) returning id;", category);
                 return TypedResults.Created($"/categories/{category.Id}", category);
             });
 
@@ -71,8 +70,8 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // update category in database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    UPDATE Categories
-                    SET Name = @Name
+                    UPDATE categories
+                    SET name = @Name
                     WHERE id = @Id", category);
                 if (rowsAffected == 0)
                 {
@@ -95,8 +94,9 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // delete category from database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    DELETE FROM Categories
-                    WHERE id = @id", new { id });
+                    Update categories
+                    set deleted = @date
+                    WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

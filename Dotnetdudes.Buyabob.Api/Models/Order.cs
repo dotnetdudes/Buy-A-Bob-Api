@@ -28,6 +28,9 @@
 
         public DateTime? DateShipped { get; set; }
 
+        // updated
+        public DateTime? Updated { get; set; }
+
         // deleted
         public DateTime? Deleted { get; set; }
     }

@@ -12,13 +12,13 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders");
+                var orders = await db.QueryAsync<Order>("SELECT * FROM orders");
                 return TypedResults.Json(orders);
             });
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
-                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders where Deleted IS NULL");
+                var orders = await db.QueryAsync<Order>("SELECT * FROM orders where deleted IS NULL");
                 return TypedResults.Json(orders);
             });
 
@@ -30,7 +30,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var order = await db.QueryFirstOrDefaultAsync<Order>("SELECT * FROM Orders WHERE id = @id", new { id });
+                var order = await db.QueryFirstOrDefaultAsync<Order>("SELECT * FROM orders WHERE id = @id", new { id });
                 // return TypedResults.Json(order);
                 return order is null ? TypedResults.NotFound() : TypedResults.Json(order);
             });
@@ -44,7 +44,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE CustomerId = @id", new { id });
+                var orders = await db.QueryAsync<Order>("SELECT * FROM orders WHERE customerid = @id", new { id });
                 
                 return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
             });
@@ -58,7 +58,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE CustomerId = @id AND Deleted IS NULL", new { id });
+                var orders = await db.QueryAsync<Order>("SELECT * FROM orders WHERE customerid = @id AND deleted IS NULL", new { id });
                 
                 return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
             });
@@ -72,7 +72,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE StatusId = @id", new { id });
+                var orders = await db.QueryAsync<Order>("SELECT * FROM orders WHERE statusid = @id", new { id });
                 // return TypedResults.Json(orders);
                 return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
             });
@@ -86,7 +86,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE StatusId = @id AND Deleted IS NULL", new { id });
+                var orders = await db.QueryAsync<Order>("SELECT * FROM orders WHERE statusid = @id AND deleted IS NULL", new { id });
                 // return TypedResults.Json(orders);
                 return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
             });
@@ -100,7 +100,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE ShippingTypeId = @id", new { id });
+                var orders = await db.QueryAsync<Order>("SELECT * FROM orders WHERE shippingtypeid = @id", new { id });
                 // return TypedResults.Json(orders);
                 return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
             });
@@ -114,7 +114,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE ShippingTypeId = @id AND Deleted IS NULL", new { id });
+                var orders = await db.QueryAsync<Order>("SELECT * FROM orders WHERE shippingtypeid = @id AND deleted IS NULL", new { id });
                 // return TypedResults.Json(orders);
                 return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
             });
@@ -128,7 +128,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE ShippingAddressId = @id", new { id });
+                var orders = await db.QueryAsync<Order>("SELECT * FROM orders WHERE shippingaddressid = @id", new { id });
                 // return TypedResults.Json(orders);
                 return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
             });
@@ -142,7 +142,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var orders = await db.QueryAsync<Order>("SELECT * FROM Orders WHERE ShippingAddressId = @id AND Deleted IS NULL", new { id });
+                var orders = await db.QueryAsync<Order>("SELECT * FROM orders WHERE shippingaddressid = @id AND deleted IS NULL", new { id });
                 // return TypedResults.Json(orders);
                 return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
             });
@@ -157,9 +157,8 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // insert order into database
                 var id = await db.ExecuteScalarAsync<int>(@"
-                    INSERT INTO Orders (UserId, ProductId, Quantity)
-                    VALUES (@UserId, @ProductId, @Quantity);
-                    SELECT last_insert_rowid();", order);
+                    INSERT INTO orders (userid, productid, quantity)
+                    VALUES (@UserId, @ProductId, @Quantity) returning id;", order);
                 return TypedResults.Created($"/orders/{order.Id}", order);
             });
 
@@ -183,19 +182,19 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // update order in database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    UPDATE Orders
-                    SET StatusId = @StatusId,
-                        SubTotal = @SubTotal,
-                        Tax = @Tax,
-                        ShippingTypeId = @ShippingTypeId,
-                        Shipping = @Shipping,
-                        ShippingAddressId = @ShippingAddressId,
-                        ContactName = @ContactName,
-                        ContactPhone = @ContactPhone,
-                        Total = @Total,
-                        DatePurchased = @DatePurchased,
-                        DateShipped = @DateShipped,
-                        Deleted = @Deleted
+                    UPDATE orders
+                    SET statusid = @StatusId,
+                        subtotal = @SubTotal,
+                        tax = @Tax,
+                        shippingtypeid = @ShippingTypeId,
+                        shipping = @Shipping,
+                        shippingaddressid = @ShippingAddressId,
+                        contactname = @ContactName,
+                        contactphone = @ContactPhone,
+                        total = @Total,
+                        datepurchased = @DatePurchased,
+                        dateshipped = @DateShipped,
+                        deleted = @Deleted
                     WHERE id = @Id", order);
                 if (rowsAffected == 0)
                 {
@@ -217,7 +216,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete order from database
-                var rowsAffected = await db.ExecuteAsync(@"UPDATE Orders SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE orders SET deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

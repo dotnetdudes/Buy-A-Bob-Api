@@ -12,13 +12,13 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts");
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM carts");
                 return TypedResults.Json(carts);
             });
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
-                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts where Deleted IS NULL");
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM carts where deleted IS NULL");
                 return TypedResults.Json(carts);
             });
 
@@ -30,7 +30,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var cart = await db.QueryFirstOrDefaultAsync<Cart>("SELECT * FROM Carts WHERE id = @id", new { id });
+                var cart = await db.QueryFirstOrDefaultAsync<Cart>("SELECT * FROM carts WHERE id = @id", new { id });
                 // return TypedResults.Json(cart);
                 return cart is null ? TypedResults.NotFound() : TypedResults.Json(cart);
             });
@@ -44,7 +44,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts WHERE CustomerId = @id", new { id });
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM carts WHERE customerid = @id", new { id });
                 // return TypedResults.Json(carts);
                 return carts is null ? TypedResults.NotFound() : TypedResults.Json(carts);
             });
@@ -58,7 +58,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts WHERE CustomerId = @id AND Deleted IS NULL", new { id });
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM carts where customerid = @id AND deleted IS NULL", new { id });
                 // return TypedResults.Json(carts);
                 return carts is null ? TypedResults.NotFound() : TypedResults.Json(carts);
             });
@@ -72,7 +72,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts WHERE StatusId = @id", new { id });
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM carts where statusid = @id", new { id });
                 // return TypedResults.Json(carts);
                 return carts is null ? TypedResults.NotFound() : TypedResults.Json(carts);
             });
@@ -86,7 +86,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var carts = await db.QueryAsync<Cart>("SELECT * FROM Carts WHERE StatusId = @id AND Deleted IS NULL", new { id });
+                var carts = await db.QueryAsync<Cart>("SELECT * FROM carts where statusid = @id AND deleted IS NULL", new { id });
                 // return TypedResults.Json(carts);
                 return carts is null ? TypedResults.NotFound() : TypedResults.Json(carts);
             });
@@ -101,9 +101,8 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // insert cart into database
                 var id = await db.ExecuteScalarAsync<int>(@"
-                    INSERT INTO Carts (UserId, ProductId, Quantity)
-                    VALUES (@UserId, @ProductId, @Quantity);
-                    SELECT last_insert_rowid();", cart);
+                    INSERT INTO carts (userid, productid, quantity)
+                    VALUES (@UserId, @ProductId, @Quantity) returning id;", cart);
                 return TypedResults.Created($"/carts/{cart.Id}", cart);
             });
 
@@ -128,8 +127,8 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 cart.Updated = DateTime.UtcNow;
                 // update cart in database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    UPDATE Carts
-                    SET UserId = @UserId, ProductId = @ProductId, Quantity = @Quantity
+                    UPDATE carts
+                    SET userid = @UserId, productid = @ProductId, quantity = @Quantity
                     WHERE id = @Id", cart);
                 if (rowsAffected == 0)
                 {
@@ -151,7 +150,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete cart from database
-                var rowsAffected = await db.ExecuteAsync(@"UPDATE Carts SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE carts set deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

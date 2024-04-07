@@ -17,7 +17,7 @@
 
         // created and updated dates in utc
         public DateTime Created { get; set; } = DateTime.UtcNow;
-        public DateTime Updated { get; set; }
+        public DateTime? Updated { get; set; }
 
         // sold
         public bool IsSold { get; set; } = false;

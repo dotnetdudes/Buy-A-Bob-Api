@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using Dotnetdudes.Buyabob.Api.Models;
 using System.Data;
 
 namespace Dotnetdudes.Buyabob.Api
@@ -16,265 +15,268 @@ namespace Dotnetdudes.Buyabob.Api
                 var db = services.GetRequiredService<IDbConnection>();
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS Customers
+                    CREATE TABLE IF NOT EXISTS customers
                     (
                         id SERIAL PRIMARY KEY,
-                        Identifier VARCHAR(120) NOT NULL,
-                        FirstName VARCHAR(120) NOT NULL,
+                        identifier VARCHAR(120) NOT NULL,
+                        firstname VARCHAR(120) NOT NULL,
                         LastName VARCHAR(120) NOT NULL,
-                        Email VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Updated TIMESTAMP,
-                        Deleted TIMESTAMP
+                        email VARCHAR(120) NOT NULL,
+                        created TIMESTAMP default (timezone('utc', now())),
+                        updated TIMESTAMP,
+                        deleted TIMESTAMP
                     );");
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS Addresses
+                    CREATE TABLE IF NOT EXISTS addresses
                     (
                         id SERIAL PRIMARY KEY,
-                        CustomerId INTEGER NOT NULL,
-                        Street VARCHAR(120) NOT NULL,
-                        Suburb VARCHAR(120) NOT NULL,
-                        City VARCHAR(120) NOT NULL,
-                        State VARCHAR(120) NOT NULL,
-                        Postcode CHAR(4) NOT NULL,
-                        Country VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Updated TIMESTAMP,
-                        Deleted TIMESTAMP
+                        customerid INTEGER NOT NULL,
+                        street VARCHAR(120) NOT NULL,
+                        suburb VARCHAR(120) NOT NULL,
+                        city VARCHAR(120) NOT NULL,
+                        state VARCHAR(120) NOT NULL,
+                        postcode CHAR(4) NOT NULL,
+                        country VARCHAR(120) NOT NULL,
+                        created TIMESTAMP default (timezone('utc', now())),
+                        updated TIMESTAMP,
+                        deleted TIMESTAMP
                     );
                 ");
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS Categories
+                    CREATE TABLE IF NOT EXISTS categories
                     (
                         id SERIAL PRIMARY KEY,
-                        Name VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Updated TIMESTAMP,
-                        Deleted TIMESTAMP
+                        name VARCHAR(120) NOT NULL,
+                        created TIMESTAMP default (timezone('utc', now())),
+                        updated TIMESTAMP,
+                        deleted TIMESTAMP
                     );");
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS Products
+                    CREATE TABLE IF NOT EXISTS products
                     (
                         id SERIAL PRIMARY KEY,
-                        Name VARCHAR(120) NOT NULL,
-                        Price INTEGER NOT NULL,
-                        Description TEXT NOT NULL,
-                        ImageUrl VARCHAR(120) NOT NULL,
-                        Weight NUMERIC(6,2) NOT NULL,
-                        Width NUMERIC(6,2) NOT NULL,
-                        Depth NUMERIC(6,2) NOT NULL,
-                        Height NUMERIC(6,2) NOT NULL,
-                        Quantity INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Updated TIMESTAMP NOT NULL,
-                        IsSold BOOLEAN NOT NULL,
-                        SoldDate TIMESTAMP,
-                        Deleted TIMESTAMP
+                        name VARCHAR(120) NOT NULL,
+                        price INTEGER NOT NULL,
+                        description TEXT NOT NULL,
+                        imageurl VARCHAR(120) NOT NULL,
+                        weight NUMERIC(6,2) NOT NULL,
+                        width NUMERIC(6,2) NOT NULL,
+                        depth NUMERIC(6,2) NOT NULL,
+                        height NUMERIC(6,2) NOT NULL,
+                        quantity INTEGER NOT NULL,
+                        created TIMESTAMP default (timezone('utc', now())),
+                        updated TIMESTAMP,
+                        issold BOOLEAN NOT NULL DEFAULT FALSE,
+                        solddate TIMESTAMP,
+                        deleted TIMESTAMP
                     );");
 
                 // ProductCategory
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS ProductCategories
+                    CREATE TABLE IF NOT EXISTS productcategories
                     (
                         id SERIAL PRIMARY KEY,
-                        ProductId INTEGER NOT NULL,
-                        CategoryId INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Deleted TIMESTAMP,
-                        FOREIGN KEY(ProductId) REFERENCES Products(Id) ON DELETE CASCADE,
-                        FOREIGN KEY(CategoryId) REFERENCES Categories(Id) ON DELETE CASCADE
+                        productid INTEGER NOT NULL,
+                        categoryid INTEGER NOT NULL,
+                        created TIMESTAMP default (timezone('utc', now())),
+                        deleted TIMESTAMP,
+                        FOREIGN KEY(productid) REFERENCES Products(id) ON DELETE CASCADE,
+                        FOREIGN KEY(categoryid) REFERENCES Categories(id) ON DELETE CASCADE
                     );");
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS Tags
+                    CREATE TABLE IF NOT EXISTS tags
                     (
                         id SERIAL PRIMARY KEY,
-                        Name VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Updated TIMESTAMP,
-                        Deleted TIMESTAMP
+                        name VARCHAR(120) NOT NULL,
+                        created TIMESTAMP DEFAULT (timezone('utc', now())),
+                        updated TIMESTAMP,
+                        deleted TIMESTAMP
                     );");
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS ProductTags
+                    CREATE TABLE IF NOT EXISTS producttags
                     (
                         id SERIAL PRIMARY KEY,
-                        ProductId INTEGER NOT NULL,
-                        TagId INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Updated TIMESTAMP,
-                        Deleted TIMESTAMP,
-                        FOREIGN KEY(ProductId) REFERENCES Products(Id) ON DELETE CASCADE,
-                        FOREIGN KEY(TagId) REFERENCES Tags(Id) ON DELETE CASCADE
+                        productid INTEGER NOT NULL,
+                        tagid INTEGER NOT NULL,
+                        created TIMESTAMP DEFAULT (timezone('utc', now())),
+                        updated TIMESTAMP,
+                        deleted TIMESTAMP,
+                        FOREIGN KEY(productid) REFERENCES products(id) ON DELETE CASCADE,
+                        FOREIGN KEY(tagid) REFERENCES tags(id) ON DELETE CASCADE
                     );");
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS Statuses
+                    CREATE TABLE IF NOT EXISTS statuses
                     (
                         id SERIAL PRIMARY KEY,
-                        Name VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Updated TIMESTAMP,
-                        Deleted TIMESTAMP
+                        name VARCHAR(120) NOT NULL,
+                        created TIMESTAMP DEFAULT (timezone('utc', now())),
+                        updated TIMESTAMP,
+                        deleted TIMESTAMP
                     );");
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS ShippingAddresses
+                    CREATE TABLE IF NOT EXISTS shippingaddresses
                     (
                         id SERIAL PRIMARY KEY,
-                        OrderId INTEGER NOT NULL,
-                        AddressId INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Deleted TIMESTAMP
+                        customerid INTEGER NOT NULL,
+                        addressid INTEGER NOT NULL,
+                        created TIMESTAMP DEFAULT (timezone('utc', now())),
+                        updated TIMESTAMP,
+                        deleted TIMESTAMP,
+                        FOREIGN KEY(customerid) REFERENCES customers(id) ON DELETE CASCADE,
+                        FOREIGN KEY(addressid) REFERENCES addresses(id) ON DELETE CASCADE
                     );");
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS ShippingTypes
+                    CREATE TABLE IF NOT EXISTS shippingtypes
                     (
                         id SERIAL PRIMARY KEY,
-                        Name VARCHAR(120) NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Updated TIMESTAMP,
-                        Deleted TIMESTAMP
+                        name VARCHAR(120) NOT NULL,
+                        created TIMESTAMP DEFAULT (timezone('utc', now())),
+                        updated TIMESTAMP,
+                        deleted TIMESTAMP
                     );");
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS Carts
+                    CREATE TABLE IF NOT EXISTS carts
                     (
                         id SERIAL PRIMARY KEY,
-                        CustomerId INTEGER NOT NULL,
-                        StatusId INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Updated TIMESTAMP,
-                        Deleted TIMESTAMP,
-                        FOREIGN KEY(CustomerId) REFERENCES Customers(Id) ON DELETE CASCADE,
-                        FOREIGN KEY(StatusId) REFERENCES Statuses(Id) ON DELETE NO ACTION
+                        customerid INTEGER NOT NULL,
+                        statusid INTEGER,
+                        created TIMESTAMP DEFAULT (timezone('utc', now())),
+                        updated TIMESTAMP,
+                        deleted TIMESTAMP,
+                        FOREIGN KEY(customerid) REFERENCES customers(id) ON DELETE CASCADE,
+                        FOREIGN KEY(statusid) REFERENCES statuses(id)
                     );");
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS CartItems
+                    CREATE TABLE IF NOT EXISTS cartitems
                     (
                         id SERIAL PRIMARY KEY,
-                        CartId INTEGER NOT NULL,
-                        ProductId INTEGER NOT NULL,
-                        Quantity INTEGER NOT NULL,
-                        Created TIMESTAMP NOT NULL,
-                        Updated TIMESTAMP,
-                        Deleted TIMESTAMP,
-                        FOREIGN KEY(ProductId) REFERENCES Products(Id) ON DELETE CASCADE,
-                        FOREIGN KEY(CartId) REFERENCES Carts(Id) ON DELETE CASCADE
+                        cartid INTEGER NOT NULL,
+                        productid INTEGER NOT NULL,
+                        quantity INTEGER NOT NULL,
+                        created TIMESTAMP DEFAULT (timezone('utc', now())),
+                        updated TIMESTAMP,
+                        deleted TIMESTAMP,
+                        FOREIGN KEY(productid) REFERENCES products(id) ON DELETE CASCADE,
+                        FOREIGN KEY(cartid) REFERENCES carts(id) ON DELETE CASCADE
                     );");
 
                 db.Execute(@"
-                    CREATE TABLE IF NOT EXISTS Orders
+                    CREATE TABLE IF NOT EXISTS orders
                     (
                         id SERIAL PRIMARY KEY,
-                        CartId INTEGER NOT NULL,
-                        StatusId INTEGER NOT NULL,
-                        SubTotal NUMERIC(10,2) NOT NULL,
-                        Tax NUMERIC(10,2) NOT NULL,
-                        ShippingTypeId INTEGER NOT NULL,
-                        Shipping NUMERIC(10,2) NOT NULL,
-                        ShippingAddressId INTEGER NOT NULL,
-                        ContactName VARCHAR(120),
-                        ContactPhone VARCHAR(120),
-                        Total NUMERIC(10,2) NOT NULL,
-                        DatePurchased TIMESTAMP NOT NULL,
-                        DateShipped TIMESTAMP,
-                        Deleted TIMESTAMP,
-                        FOREIGN KEY(CartId) REFERENCES Carts(Id) ON DELETE CASCADE,
-                        FOREIGN KEY(StatusId) REFERENCES Statuses(Id) ON DELETE NO ACTION,
-                        FOREIGN KEY(ShippingTypeId) REFERENCES ShippingTypes(Id) ON DELETE NO ACTION,
-                        FOREIGN KEY(ShippingAddressId) REFERENCES ShippingAddresses(Id) ON DELETE NO ACTION
+                        cartid INTEGER NOT NULL,
+                        statusid INTEGER NOT NULL,
+                        subtotal NUMERIC(10,2) NOT NULL,
+                        tax NUMERIC(10,2) NOT NULL,
+                        shippingtypeid INTEGER NOT NULL,
+                        shipping NUMERIC(10,2) NOT NULL,
+                        shippingaddressid INTEGER NOT NULL,
+                        contactname VARCHAR(120),
+                        contactphone VARCHAR(120),
+                        total NUMERIC(10,2) NOT NULL,
+                        datepurchased TIMESTAMP DEFAULT (timezone('utc', now())),
+                        dateshipped TIMESTAMP,
+                        deleted TIMESTAMP,
+                        FOREIGN KEY(cartid) REFERENCES carts(id) ON DELETE CASCADE,
+                        FOREIGN KEY(statusid) REFERENCES statuses(id) ON DELETE NO ACTION,
+                        FOREIGN KEY(shippingtypeid) REFERENCES shippingtypes(id) ON DELETE NO ACTION,
+                        FOREIGN KEY(shippingaddressid) REFERENCES shippingaddresses(id) ON DELETE NO ACTION
                     );");
 
                 // Seed Data
-                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM Categories") == 0)
+                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM categories") == 0)
                 {
                     db.Execute(@"
-                            INSERT INTO Categories (Name, Created) VALUES ('Paintings', '2020-01-01');
+                            INSERT INTO categories (name, created) VALUES ('Paintings', '2020-01-01');
                             ");
                 }
 
-                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM Statuses") == 0)
+                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM statuses") == 0)
                 {
                     db.Execute(@"
-                            INSERT INTO Statuses (Name, Created) VALUES ('Pending', '2020-01-01');
-                            INSERT INTO Statuses (Name, Created) VALUES ('Processing', '2020-01-01');
-                            INSERT INTO Statuses (Name, Created) VALUES ('Shipped', '2020-01-01');
-                            INSERT INTO Statuses (Name, Created) VALUES ('Delivered', '2020-01-01');
-                            INSERT INTO Statuses (Name, Created) VALUES ('Cancelled', '2020-01-01');
+                            INSERT INTO statuses (name, created) VALUES ('Pending', '2020-01-01');
+                            INSERT INTO statuses (name, created) VALUES ('Processing', '2020-01-01');
+                            INSERT INTO statuses (name, created) VALUES ('Shipped', '2020-01-01');
+                            INSERT INTO statuses (name, created) VALUES ('Delivered', '2020-01-01');
+                            INSERT INTO statuses (name, created) VALUES ('Cancelled', '2020-01-01');
                             ");
                 }
 
-                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM ShippingTypes") == 0)
+                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM shippingtypes") == 0)
                 {
                     db.Execute(@"
-                            INSERT INTO ShippingTypes (Name, Created) VALUES ('Standard', '2020-01-01');
-                            INSERT INTO ShippingTypes (Name, Created) VALUES ('Express', '2020-01-01');
+                            INSERT INTO shippingtypes (name, created) VALUES ('Standard', '2020-01-01');
+                            INSERT INTO shippingtypes (name, created) VALUES ('Express', '2020-01-01');
                             ");
                 }
 
                 // customers
-                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM Customers") == 0)
+                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM customers") == 0)
                 {
                     db.Execute(@"
-                            INSERT INTO Customers (Identifier, FirstName, LastName, Email, Created) VALUES ('1234567890', 'John', 'Morton', 'john@dotnetdudes.com', '2020-01-01'); 
+                            INSERT INTO customers (identifier, firstname, lastname, email, created) VALUES ('1234567890', 'John', 'Morton', 'john@dotnetdudes.com', '2020-01-01'); 
                             ");
                 }
 
                 // products
-                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM Products") == 0)
+                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM products") == 0)
                 {
                     db.Execute(@"
-                            INSERT INTO Products (Name, Price, Description, ImageUrl, Weight, Width, Depth, Height, Quantity, Created, Updated, IsSold) VALUES ('Painting 1', 100, 'Painting 1 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
-                            INSERT INTO Products (Name, Price, Description, ImageUrl, Weight, Width, Depth, Height, Quantity, Created, Updated, IsSold) VALUES ('Painting 2', 200, 'Painting 2 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
-                            INSERT INTO Products (Name, Price, Description, ImageUrl, Weight, Width, Depth, Height, Quantity, Created, Updated, IsSold) VALUES ('Painting 3', 300, 'Painting 3 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
-                            INSERT INTO Products (Name, Price, Description, ImageUrl, Weight, Width, Depth, Height, Quantity, Created, Updated, IsSold) VALUES ('Painting 4', 400, 'Painting 4 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
+                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 1', 100, 'Painting 1 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
+                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 2', 200, 'Painting 2 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
+                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 3', 300, 'Painting 3 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
+                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 4', 400, 'Painting 4 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
                             ");
                 }
 
                 // product categories
-                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM ProductCategories") == 0)
+                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM productcategories") == 0)
                 {
                     db.Execute(@"
-                            INSERT INTO ProductCategories (ProductId, CategoryId, Created) VALUES (1, 1, '2020-01-01');
-                            INSERT INTO ProductCategories (ProductId, CategoryId, Created) VALUES (2, 1, '2020-01-01');
-                            INSERT INTO ProductCategories (ProductId, CategoryId, Created) VALUES (3, 1, '2020-01-01');
-                            INSERT INTO ProductCategories (ProductId, CategoryId, Created) VALUES (4, 1, '2020-01-01');
+                            INSERT INTO productcategories (productid, categoryid, created) values (1, 1, '2020-01-01');
+                            insert into productcategories (productid, categoryid, created) VALUES (2, 1, '2020-01-01');
+                            INSERT INTO productcategories (productid, categoryid, created) VALUES (3, 1, '2020-01-01');
+                            INSERT INTO productcategories (productid, categoryid, created) VALUES (4, 1, '2020-01-01');
                             ");
                 }
 
                 // tags
-                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM Tags") == 0)
+                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM tags") == 0)
                 {
                     db.Execute(@"
-                            INSERT INTO Tags (Name, Created) VALUES ('Tag 1', '2020-01-01');
-                            INSERT INTO Tags (Name, Created) VALUES ('Tag 2', '2020-01-01');
-                            INSERT INTO Tags (Name, Created) VALUES ('Tag 3', '2020-01-01');
-                            INSERT INTO Tags (Name, Created) VALUES ('Tag 4', '2020-01-01');
+                            INSERT INTO tags (name, created) VALUES ('Tag 1', '2020-01-01');
+                            INSERT INTO tags (name, created) VALUES ('Tag 2', '2020-01-01');
+                            INSERT INTO tags (name, created) VALUES ('Tag 3', '2020-01-01');
+                            INSERT INTO tags (name, created) VALUES ('Tag 4', '2020-01-01');
                             ");
                 }
 
                 // product tags
-                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM ProductTags") == 0)
+                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM producttags") == 0)
                 {
                     db.Execute(@"
-                            INSERT INTO ProductTags (ProductId, TagId, Created) VALUES (1, 1, '2020-01-01');
-                            INSERT INTO ProductTags (ProductId, TagId, Created) VALUES (2, 2, '2020-01-01');
-                            INSERT INTO ProductTags (ProductId, TagId, Created) VALUES (3, 3, '2020-01-01');
-                            INSERT INTO ProductTags (ProductId, TagId, Created) VALUES (4, 4, '2020-01-01');
+                            insert into producttags (productid, tagid, created) VALUES (1, 1, '2020-01-01');
+                            INSERT INTO producttags (productid, tagid, created) VALUES (2, 2, '2020-01-01');
+                            INSERT INTO producttags (productid, tagid, created) VALUES (3, 3, '2020-01-01');
+                            INSERT INTO producttags (productid, tagid, created) VALUES (4, 4, '2020-01-01');
                             ");
                 }
 
                 // addresses
-                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM Addresses") == 0)
+                if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM addresses") == 0)
                 {
                     db.Execute(@"
-                            INSERT INTO Addresses (CustomerId, Street, Suburb, City, State, Postcode, Country, Created) VALUES (1, '123 Fake Street', 'Fake Suburb', 'Fake City', 'Fake State', '1234', 'Fake Country', '2020-01-01');
+                            INSERT INTO addresses (customerid, street, suburb, city, state, postcode, country, created) VALUES (1, '123 Fake Street', 'Fake Suburb', 'Fake City', 'Fake State', '1234', 'Fake Country', '2020-01-01');
                             ");
                 }
             }

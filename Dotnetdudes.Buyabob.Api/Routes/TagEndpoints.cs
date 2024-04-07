@@ -12,13 +12,13 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var tags = await db.QueryAsync<Tag>("SELECT * FROM Tags");
+                var tags = await db.QueryAsync<Tag>("SELECT * FROM tags");
                 return TypedResults.Json(tags);
             });
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
-                var tags = await db.QueryAsync<Tag>("SELECT * FROM Tags where Deleted IS NULL");
+                var tags = await db.QueryAsync<Tag>("SELECT * FROM tags where deleted IS NULL");
                 return TypedResults.Json(tags);
             });
 
@@ -30,7 +30,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var tag = await db.QueryFirstOrDefaultAsync<Tag>("SELECT * FROM Tags WHERE Id = @id", new { id });
+                var tag = await db.QueryFirstOrDefaultAsync<Tag>("SELECT * FROM tags WHERE Id = @id", new { id });
                 
                 return tag is null ? TypedResults.NotFound() : TypedResults.Json(tag);
             });
@@ -45,9 +45,8 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // insert tag into database
                 var id = await db.ExecuteScalarAsync<int>(@"
-                    INSERT INTO Tags (Name)
-                    VALUES (@Name);
-                    SELECT last_insert_rowid();", tag);
+                    INSERT INTO tags (name)
+                    VALUES (@Name) returning id;", tag);
                 return TypedResults.Created($"/tags/{tag.Id}", tag);
             });
 
@@ -71,8 +70,8 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // update tag in database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    UPDATE Tags
-                    SET Name = @Name
+                    UPDATE tags
+                    SET name = @Name
                     WHERE id = @Id", tag);
                 if (rowsAffected == 0)
                 {
@@ -94,7 +93,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete tag from database
-                var rowsAffected = await db.ExecuteAsync(@"UPDATE Tags SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE tags SET deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

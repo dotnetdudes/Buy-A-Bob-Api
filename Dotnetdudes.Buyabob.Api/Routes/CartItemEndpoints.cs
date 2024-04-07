@@ -12,14 +12,14 @@ namespace Dotnetdudes.Buyabob.Api.Routes
         {
             group.MapGet("/", async (IDbConnection db) =>
             {
-                var cartItems = await db.QueryAsync<CartItem>("SELECT * FROM CartItems");
-                return TypedResults.Json(cartItems);
+                var cartitems = await db.QueryAsync<CartItem>("SELECT * FROM cartitems");
+                return TypedResults.Json(cartitems);
             });
 
             group.MapGet("/active", async (IDbConnection db) =>
             {
-                var cartItems = await db.QueryAsync<CartItem>("SELECT * FROM CartItems where Deleted IS NULL");
-                return TypedResults.Json(cartItems);
+                var cartitems = await db.QueryAsync<CartItem>("SELECT * FROM cartitems where deleted IS NULL");
+                return TypedResults.Json(cartitems);
             });
 
             group.MapGet("/{id}", async Task<Results<JsonHttpResult<CartItem>, NotFound, BadRequest>> (IDbConnection db, string id) =>
@@ -30,7 +30,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var cartItem = await db.QueryFirstOrDefaultAsync<CartItem>("SELECT * FROM CartItems WHERE id = @id", new { id });
+                var cartItem = await db.QueryFirstOrDefaultAsync<CartItem>("SELECT * FROM cartitems WHERE id = @id", new { id });
                 return cartItem is null ? TypedResults.NotFound() : TypedResults.Json(cartItem);
             });
 
@@ -43,9 +43,9 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var cartItems = await db.QueryAsync<CartItem>("SELECT * FROM CartItems WHERE CartId = @id", new { id });
-                // return TypedResults.Json(cartItems);
-                return cartItems is null ? TypedResults.NotFound() : TypedResults.Json(cartItems);
+                var cartitems = await db.QueryAsync<CartItem>("SELECT * FROM cartitems WHERE cartid = @id", new { id });
+                // return TypedResults.Json(cartitems);
+                return cartitems is null ? TypedResults.NotFound() : TypedResults.Json(cartitems);
             });
 
             // get active by cart id
@@ -57,9 +57,9 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var cartItems = await db.QueryAsync<CartItem>("SELECT * FROM CartItems WHERE CartId = @id AND Deleted IS NULL", new { id });
-                // return TypedResults.Json(cartItems);
-                return cartItems is null ? TypedResults.NotFound() : TypedResults.Json(cartItems);
+                var cartitems = await db.QueryAsync<CartItem>("SELECT * FROM cartitems where cartid = @id AND deleted IS NULL", new { id });
+                // return TypedResults.Json(cartitems);
+                return cartitems is null ? TypedResults.NotFound() : TypedResults.Json(cartitems);
             });
 
             group.MapPost("/", async Task<Results<Created<CartItem>, NotFound, ValidationProblem>> (IValidator<CartItem> validator, IDbConnection db, CartItem cartItem) =>
@@ -72,10 +72,9 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 // insert cartItem into database
                 var id = await db.ExecuteScalarAsync<int>(@"
-                    INSERT INTO CartItems (CartId, ProductId, Quantity)
-                    VALUES (@CartId, @ProductId, @Quantity);
-                    SELECT last_insert_rowid();", cartItem);
-                return TypedResults.Created($"/cartItems/{cartItem.Id}", cartItem);
+                    insert into cartitems (cartid, productid, quantity)
+                    VALUES (@CartId, @ProductId, @Quantity) returning id;", cartItem);
+                return TypedResults.Created($"/cartitems/{cartItem.Id}", cartItem);
             });
 
             group.MapPut("/{id}", async Task<Results<Ok<CartItem>, NotFound, ValidationProblem, BadRequest>> (IValidator<CartItem> validator, IDbConnection db, string id, CartItem cartItem) =>
@@ -99,10 +98,10 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 cartItem.Updated = DateTime.UtcNow;
                 // update cartItem in database
                 var rowsAffected = await db.ExecuteAsync(@"
-                    UPDATE CartItems
-                    SET CartId = @CartId,
-                        ProductId = @ProductId,
-                        Quantity = @Quantity
+                    UPDATE cartitems
+                    SET cartid = @CartId,
+                        productid = @ProductId,
+                        quantity = @Quantity
                     WHERE id = @Id", cartItem);
                 if (rowsAffected == 0)
                 {
@@ -124,7 +123,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete cartItem from database
-                var rowsAffected = await db.ExecuteAsync(@"UPDATE CartItems SET Deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
+                var rowsAffected = await db.ExecuteAsync(@"UPDATE cartitems SET deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();
