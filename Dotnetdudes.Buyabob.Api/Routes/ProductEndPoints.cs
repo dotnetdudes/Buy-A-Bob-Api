@@ -69,7 +69,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     VALUES (@Name, @Description, @Price, @ImageUrl, @Weight, @Width, @Height, @Depth, @Quantity, @Created) returning id;", product);
                 product.Id = id;
                 return TypedResults.Ok(product);
-            }).RequireAuthorization();
+            }).RequireAuthorization("BobAdmin");
 
             group.MapPut("/{id}", async Task<Results<Ok<Product>, NotFound, ValidationProblem, BadRequest>> (IValidator<Product> validator, IDbConnection db, string id, Product product) =>
             {
@@ -100,7 +100,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.NotFound();
                 }
                 return TypedResults.Ok(product);
-            }).RequireAuthorization();
+            }).RequireAuthorization("BobAdmin");
 
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
@@ -121,7 +121,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.NotFound();
                 }
                 return TypedResults.NoContent();
-            }).RequireAuthorization();
+            }).RequireAuthorization("BobAdmin");
 
             return group;
         }

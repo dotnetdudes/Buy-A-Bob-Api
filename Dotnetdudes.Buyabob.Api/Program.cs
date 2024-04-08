@@ -62,10 +62,12 @@ builder.Services.AddSwaggerGen(options =>
 // CORS
 builder.Services.AddCors(options =>
 {
+    string origins = builder.Configuration.GetValue<string>("Cors:AllowedOrigins") ?? "http://localhost:8080";
+    string[] originsArray = origins.Split(",");
     options.AddPolicy(name: "Bobrigins",
                       policy =>
                       {
-                          policy.WithOrigins(builder.Configuration["Cors:AllowedOrigins"] ?? "http://localhost:8080")
+                          policy.WithOrigins(originsArray)
                           .WithHeaders("Authorization", "Content-Type", "Accept", "X-XSRF-TOKEN").WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                           .AllowCredentials();
                       });
@@ -87,8 +89,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters.ValidateLifetime = true;
     });
 
-// add authorization
-builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => policy.RequireRole("admin"));
+// add authorization with keycloak resource access buyabob-web role bobadmin
+// builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => policy.RequireRole("bobadmin"));
+builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => policy.RequireAssertion(context =>
+{
+    return context.User.HasClaim(c => 
+            c.Type == "resource_access" &&
+            // some custom function to calculate the years
+           c.Value.Contains("bobadmin"));
+}));
+
 
 // add postgressql database connection
 builder.Services.AddScoped<IDbConnection>(provider =>
