@@ -112,7 +112,7 @@ builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => polic
             c.Type == "resource_access" && c.Value.Contains("bobadmin"));
 }));
 
-builder.Services.AddHttpClient<AuspostService>(client =>
+builder.Services.AddHttpClient<IAuspostService, AuspostService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Auspost:Api:BaseUrl"] ?? "https://test.npe.auspost.com.au");
     client.DefaultRequestHeaders.Add("AUTH-KEY", builder.Configuration["Auspost:Api:Auth-Key"] ?? "28744ed5982391881611cca6cf5c240");
