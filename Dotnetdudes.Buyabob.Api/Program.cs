@@ -7,12 +7,13 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Extensions.Http.Resilience;
 using Npgsql;
 using Serilog;
 using Serilog.Events;
 using System.Data;
 using Dotnetdudes.Buyabob.Api.Services;
+using Polly;
+using Polly.Timeout;
 
 Log.Logger = new LoggerConfiguration()
    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -24,6 +25,19 @@ Log.Information("Starting Buy-A-Bob Api application");
 
 // Create the builder and services
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddResiliencePipeline<string, HttpResponseMessage>("auspost-pipeline", builder =>
+ {
+     builder.AddRetry(new()
+     {
+         MaxRetryAttempts = 2,
+         ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+             .Handle<HttpRequestException>()
+             .Handle<TimeoutRejectedException>()
+             .HandleResult(response => response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+     })
+     .AddTimeout(TimeSpan.FromSeconds(2));
+ });
 
 builder.Host.UseSerilog((context, services, configuration) => configuration
      .ReadFrom.Configuration(context.Configuration)
@@ -92,13 +106,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // add authorization with keycloak resource access buyabob-web role bobadmin
-// builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => policy.RequireRole("bobadmin"));
 builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => policy.RequireAssertion(context =>
 {
     return context.User.HasClaim(c =>
             c.Type == "resource_access" && c.Value.Contains("bobadmin"));
 }));
-
 
 builder.Services.AddHttpClient<AuspostService>(client =>
 {
