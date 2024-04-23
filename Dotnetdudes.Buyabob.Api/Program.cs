@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Http.Resilience;
 using Npgsql;
 using Serilog;
 using Serilog.Events;
@@ -98,10 +99,11 @@ builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => polic
             c.Type == "resource_access" && c.Value.Contains("bobadmin"));
 }));
 
+
 builder.Services.AddHttpClient<AuspostService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["Auspost:BaseUrl"] ?? "https://digitalapi.auspost.com.au");
-    client.DefaultRequestHeaders.Add("AUTH-KEY", builder.Configuration["Auspost:Auth-Key"] ?? "28744ed5982391881611cca6cf5c240");
+    client.BaseAddress = new Uri(builder.Configuration["Auspost:Api:BaseUrl"] ?? "https://test.npe.auspost.com.au");
+    client.DefaultRequestHeaders.Add("AUTH-KEY", builder.Configuration["Auspost:Api:Auth-Key"] ?? "28744ed5982391881611cca6cf5c240");
 }).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
 {
     PooledConnectionLifetime = TimeSpan.FromHours(1),

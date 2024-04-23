@@ -16,6 +16,12 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 return sizes is null ? TypedResults.NotFound() : TypedResults.Json(sizes);
             });
 
+            group.MapGet("/shipping-services", async Task<Results<JsonHttpResult<ShippingServices>, NotFound>> (AuspostService auspost, string from_postcode, string to_postcode, decimal weight, decimal width, decimal height, decimal length) =>
+            {
+                var services = await auspost.GetShippingServicesAsync(from_postcode, to_postcode, weight, width, height, length);
+                return services is null ? TypedResults.NotFound() : TypedResults.Json(services);
+            });
+
             return group;
         }
     }
