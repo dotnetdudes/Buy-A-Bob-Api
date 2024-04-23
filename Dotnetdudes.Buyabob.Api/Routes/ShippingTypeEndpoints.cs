@@ -48,7 +48,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     INSERT INTO shippingtypes (name)
                     VALUES (@Name) returning id;", shippingType);
                 return TypedResults.Created($"/shippingtypes/{shippingType.Id}", shippingType);
-            });
+            }).RequireAuthorization("BobAdmin");
 
             group.MapPut("/{id}", async Task<Results<Ok<ShippingType>, NotFound, ValidationProblem, BadRequest>> (IValidator<ShippingType> validator, IDbConnection db, string id, ShippingType shippingType) =>
             {
@@ -79,7 +79,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.NotFound();
                 }
                 return TypedResults.Ok(shippingType);
-            });
+            }).RequireAuthorization("BobAdmin");
             
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
@@ -100,7 +100,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.NotFound();
                 }
                 return TypedResults.NoContent();
-            });
+            }).RequireAuthorization("BobAdmin");
 
             return group;
 

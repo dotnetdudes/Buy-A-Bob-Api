@@ -11,6 +11,7 @@ using Npgsql;
 using Serilog;
 using Serilog.Events;
 using System.Data;
+using Dotnetdudes.Buyabob.Api.Services;
 
 Log.Logger = new LoggerConfiguration()
    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -93,12 +94,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => policy.RequireRole("bobadmin"));
 builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => policy.RequireAssertion(context =>
 {
-    return context.User.HasClaim(c => 
-            c.Type == "resource_access" &&
-            // some custom function to calculate the years
-           c.Value.Contains("bobadmin"));
+    return context.User.HasClaim(c =>
+            c.Type == "resource_access" && c.Value.Contains("bobadmin"));
 }));
 
+builder.Services.AddHttpClient<AuspostService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Auspost:BaseUrl"] ?? "https://digitalapi.auspost.com.au");
+    client.DefaultRequestHeaders.Add("AUTH-KEY", builder.Configuration["Auspost:Auth-Key"] ?? "28744ed5982391881611cca6cf5c240");
+}).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    PooledConnectionLifetime = TimeSpan.FromHours(1),
+}).SetHandlerLifetime(Timeout.InfiniteTimeSpan);
 
 // add postgressql database connection
 builder.Services.AddScoped<IDbConnection>(provider =>
@@ -164,7 +171,7 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.MapGet("/", () => "Hello World!");
+app.MapGet("/", () => "Hello from the Buyabob api!");
 
 app.MapGet("/api/antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
 {
@@ -185,6 +192,7 @@ app.MapGroup("/api/cartitem").MapCartItemEndpoints().WithTags("Cart Item");
 app.MapGroup("/api/orders").MapOrderEndpoints().WithTags("Orders");
 app.MapGroup("/api/ShippingAddress").MapShippingAddressEndpoints().WithTags("Shipping Address");
 app.MapGroup("/api/shippingtype").MapShippingTypeEndpoints().WithTags("Shipping Type");
+app.MapGroup("/api/auspost").MapAuspostEndpoints().WithTags("Auspost");
 
 app.Run();
 

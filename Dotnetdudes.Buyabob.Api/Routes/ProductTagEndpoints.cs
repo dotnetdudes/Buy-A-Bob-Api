@@ -104,7 +104,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     INSERT INTO producttags (productid, tagid)
                     VALUES (@ProductId, @TagId) returning id;", productTag);
                 return TypedResults.Created($"/producttags/{productTag.Id}", productTag);
-            });
+            }).RequireAuthorization("BobAdmin");
 
             group.MapPut("/{id}", async Task<Results<Ok<ProductTag>, NotFound, ValidationProblem, BadRequest>> (IValidator<ProductTag> validator, IDbConnection db, string id, ProductTag productTag) =>
             {
@@ -134,7 +134,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.NotFound();
                 }
                 return TypedResults.Ok(productTag);
-            });
+            }).RequireAuthorization("BobAdmin");
             
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
@@ -155,7 +155,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.NotFound();
                 }
                 return TypedResults.NoContent();
-            });
+            }).RequireAuthorization("BobAdmin");
 
             return group;
         }
