@@ -12,6 +12,7 @@ using Serilog;
 using Serilog.Events;
 using System.Data;
 using Dotnetdudes.Buyabob.Api.Services;
+using Dotnetdudes.Buyabob.Api.Services.Helpers;
 using Polly;
 using Polly.Timeout;
 
@@ -112,6 +113,11 @@ builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => polic
             c.Type == "resource_access" && c.Value.Contains("bobadmin"));
 }));
 
+// add in memory cache
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<AuspostCache>();
+
+// add auspost service
 builder.Services.AddHttpClient<IAuspostService, AuspostService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Auspost:Api:BaseUrl"] ?? "https://test.npe.auspost.com.au");

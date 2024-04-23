@@ -19,21 +19,18 @@ namespace Dotnetdudes.Buyabob.Api.Services
 
         public async Task<ShippingSizes> GetShippingSizesAsync()
         {
-            // var sizes = await _httpClient.GetFromJsonAsync<ShippingSizes>("/postage/parcel/domestic/size.json");
             var sizes = await pipeline.ExecuteAsync(async (token) => await _httpClient.GetFromJsonAsync<ShippingSizes>("/postage/parcel/domestic/size.json"));
             return sizes ?? throw new Exception("Failed to get shipping sizes");
         }
 
         public async Task<ShippingServices> GetShippingServicesAsync(string from_postcode, string to_postcode, decimal weight, decimal width, decimal height, decimal length)
         {
-            // var shippingservices = await _httpClient.GetFromJsonAsync<ShippingServices>($"/postage/parcel/domestic/service.json?length={length}&width={width}&height={height}&weight={weight}&from_postcode={from_postcode}&to_postcode={to_postcode}");
             var shippingservices = await pipeline.ExecuteAsync(async (token) => await _httpClient.GetFromJsonAsync<ShippingServices>($"/postage/parcel/domestic/service.json?length={length}&width={width}&height={height}&weight={weight}&from_postcode={from_postcode}&to_postcode={to_postcode}"));
             return shippingservices ?? throw new Exception("Failed to get shipping services");
         }
 
         public async Task<ShippingCost> GetShippingCostAsync(string from_postcode, string to_postcode, decimal weight, decimal width, decimal height, decimal length, string service_code)
         {
-            // var shippingcost = await _httpClient.GetFromJsonAsync<ShippingCost>($"/postage/parcel/domestic/calculate.json?length={length}&width={width}&height={height}&weight={weight}&from_postcode={from_postcode}&to_postcode={to_postcode}&service_code={service_code}");
             var shippingcost = await pipeline.ExecuteAsync(async (token) => await _httpClient.GetFromJsonAsync<ShippingCost>($"/postage/parcel/domestic/calculate.json?length={length}&width={width}&height={height}&weight={weight}&from_postcode={from_postcode}&to_postcode={to_postcode}&service_code={service_code}"));
             return shippingcost ?? throw new Exception("Failed to get shipping cost");
         }
