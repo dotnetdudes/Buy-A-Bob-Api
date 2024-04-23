@@ -22,6 +22,12 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 return services is null ? TypedResults.NotFound() : TypedResults.Json(services);
             });
 
+            group.MapGet("/shipping-cost", async Task<Results<JsonHttpResult<ShippingCost>, NotFound>> (AuspostService auspost, string from_postcode, string to_postcode, decimal weight, decimal width, decimal height, decimal length, string service_code) =>
+            {
+                var cost = await auspost.GetShippingCostAsync(from_postcode, to_postcode, weight, width, height, length, service_code);
+                return cost is null ? TypedResults.NotFound() : TypedResults.Json(cost);
+            });
+
             return group;
         }
     }

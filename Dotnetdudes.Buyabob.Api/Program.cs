@@ -159,7 +159,7 @@ app.UseExceptionHandler(exceptionHandlerApp
         var error = context?.Features?.Get<IExceptionHandlerFeature>()?.Error;
         if (error is not null)
         {
-            Log.Error(error, "Unhandled exception");
+            Log.Error(error, "Exception caught by global handler");
         }
         await Results.Problem().ExecuteAsync(context!);
     })
