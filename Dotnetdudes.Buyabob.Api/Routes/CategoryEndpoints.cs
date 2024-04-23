@@ -48,7 +48,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     INSERT INTO categories (name)
                     VALUES (@Name) returning id;", category);
                 return TypedResults.Created($"/categories/{category.Id}", category);
-            });
+            }).RequireAuthorization("BobAdmin");
 
             group.MapPut("/{id}", async Task<Results<Ok<Category>, NotFound, ValidationProblem, BadRequest>> (IValidator<Category> validator, IDbConnection db, string id, Category category) =>
             {
@@ -78,7 +78,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.NotFound();
                 }
                 return TypedResults.Ok(category);
-            });
+            }).RequireAuthorization("BobAdmin");
             
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
@@ -102,7 +102,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.NotFound();
                 }
                 return TypedResults.NoContent();
-            });
+            }).RequireAuthorization("BobAdmin");
 
             return group;
 

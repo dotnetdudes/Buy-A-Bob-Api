@@ -232,10 +232,10 @@ namespace Dotnetdudes.Buyabob.Api
                 if (db.QueryFirstOrDefault<int>("SELECT COUNT(*) FROM products") == 0)
                 {
                     db.Execute(@"
-                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 1', 100, 'Painting 1 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
-                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 2', 200, 'Painting 2 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
-                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 3', 300, 'Painting 3 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
-                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 4', 400, 'Painting 4 Description', 'https://picsum.photos/200/300', 1.2, 1.2, 1.2, 1.2, 1, '2020-01-01', '2020-01-01', false);
+                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 1', 100, 'Painting 1 Description', '/paintings/IMG_0130.jpg', 1.2, 90, 1, 60, 1, '2020-01-01', '2020-01-01', false);
+                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 2', 200, 'Painting 2 Description', '/paintings/IMG_0134.jpg', 1.2, 90, 1.2, 60, 1, '2020-01-01', '2020-01-01', false);
+                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 3', 300, 'Painting 3 Description', '/paintings/IMG_0138.jpg', 1.2, 60, 1.2, 90, 1, '2020-01-01', '2020-01-01', false);
+                            INSERT INTO products (name, price, description, imageurl, weight, width, depth, height, quantity, created, updated, issold) VALUES ('Painting 4', 400, 'Painting 4 Description', '/paintings/IMG_0144.jpg', 1.2, 90, 1.2, 60, 1, '2020-01-01', '2020-01-01', false);
                             ");
                 }
 
