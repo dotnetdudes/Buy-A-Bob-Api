@@ -12,6 +12,9 @@ using Serilog;
 using Serilog.Events;
 using System.Data;
 using Dotnetdudes.Buyabob.Api.Services;
+using Dotnetdudes.Buyabob.Api.Services.Helpers;
+using Polly;
+using Polly.Timeout;
 
 Log.Logger = new LoggerConfiguration()
    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -23,6 +26,19 @@ Log.Information("Starting Buy-A-Bob Api application");
 
 // Create the builder and services
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddResiliencePipeline<string, HttpResponseMessage>("auspost-pipeline", builder =>
+ {
+     builder.AddRetry(new()
+     {
+         MaxRetryAttempts = 2,
+         ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+             .Handle<HttpRequestException>()
+             .Handle<TimeoutRejectedException>()
+             .HandleResult(response => response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+     })
+     .AddTimeout(TimeSpan.FromSeconds(2));
+ });
 
 builder.Host.UseSerilog((context, services, configuration) => configuration
      .ReadFrom.Configuration(context.Configuration)
@@ -91,17 +107,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // add authorization with keycloak resource access buyabob-web role bobadmin
-// builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => policy.RequireRole("bobadmin"));
 builder.Services.AddAuthorizationBuilder().AddPolicy("BobAdmin", policy => policy.RequireAssertion(context =>
 {
     return context.User.HasClaim(c =>
             c.Type == "resource_access" && c.Value.Contains("bobadmin"));
 }));
 
-builder.Services.AddHttpClient<AuspostService>(client =>
+// add in memory cache
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<AuspostCache>();
+
+// add auspost service
+builder.Services.AddHttpClient<IAuspostService, AuspostService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["Auspost:BaseUrl"] ?? "https://digitalapi.auspost.com.au");
-    client.DefaultRequestHeaders.Add("AUTH-KEY", builder.Configuration["Auspost:Auth-Key"] ?? "28744ed5982391881611cca6cf5c240");
+    client.BaseAddress = new Uri(builder.Configuration["Auspost:Api:BaseUrl"] ?? "https://test.npe.auspost.com.au");
+    client.DefaultRequestHeaders.Add("AUTH-KEY", builder.Configuration["Auspost:Api:Auth-Key"] ?? "28744ed5982391881611cca6cf5c240");
 }).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
 {
     PooledConnectionLifetime = TimeSpan.FromHours(1),
@@ -145,7 +165,7 @@ app.UseExceptionHandler(exceptionHandlerApp
         var error = context?.Features?.Get<IExceptionHandlerFeature>()?.Error;
         if (error is not null)
         {
-            Log.Error(error, "Unhandled exception");
+            Log.Error(error, "Exception caught by global handler");
         }
         await Results.Problem().ExecuteAsync(context!);
     })
