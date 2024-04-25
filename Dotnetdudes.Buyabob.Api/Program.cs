@@ -1,20 +1,20 @@
 using Dotnetdudes.Buyabob.Api;
 using Dotnetdudes.Buyabob.Api.Routes;
+using Dotnetdudes.Buyabob.Api.Services;
+using Dotnetdudes.Buyabob.Api.Services.Helpers;
 using FluentValidation;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.HttpOverrides;
 using Npgsql;
+using Polly;
+using Polly.Timeout;
 using Serilog;
 using Serilog.Events;
 using System.Data;
-using Dotnetdudes.Buyabob.Api.Services;
-using Dotnetdudes.Buyabob.Api.Services.Helpers;
-using Polly;
-using Polly.Timeout;
 
 Log.Logger = new LoggerConfiguration()
    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -26,19 +26,6 @@ Log.Information("Starting Buy-A-Bob Api application");
 
 // Create the builder and services
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddResiliencePipeline<string, HttpResponseMessage>("auspost-pipeline", builder =>
- {
-     builder.AddRetry(new()
-     {
-         MaxRetryAttempts = 2,
-         ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-             .Handle<HttpRequestException>()
-             .Handle<TimeoutRejectedException>()
-             .HandleResult(response => response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
-     })
-     .AddTimeout(TimeSpan.FromSeconds(2));
- });
 
 builder.Host.UseSerilog((context, services, configuration) => configuration
      .ReadFrom.Configuration(context.Configuration)
@@ -125,7 +112,7 @@ builder.Services.AddHttpClient<IAuspostService, AuspostService>(client =>
 }).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
 {
     PooledConnectionLifetime = TimeSpan.FromHours(1),
-}).SetHandlerLifetime(Timeout.InfiniteTimeSpan);
+}).AddHttpMessageHandler<AuspostCache>().SetHandlerLifetime(Timeout.InfiniteTimeSpan);
 
 // add postgressql database connection
 builder.Services.AddScoped<IDbConnection>(provider =>

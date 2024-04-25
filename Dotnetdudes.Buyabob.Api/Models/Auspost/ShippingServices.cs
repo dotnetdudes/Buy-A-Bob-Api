@@ -1,9 +1,8 @@
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Dotnetdudes.Buyabob.Api.Models.Auspost
 {
-   public class Option
+    public class Option
     {
         [JsonPropertyName("code"), JsonRequired]
         public required string Code { get; set; }

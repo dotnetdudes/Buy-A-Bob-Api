@@ -1,14 +1,18 @@
 // Interface for AuspostService
 
-using System.Threading.Tasks;
 using Dotnetdudes.Buyabob.Api.Models.Auspost;
 
 namespace Dotnetdudes.Buyabob.Api.Services
 {
     public interface IAuspostService
     {
-        Task<ShippingSizes> GetShippingSizesAsync();
-        Task<ShippingServices> GetShippingServicesAsync(string from_postcode, string to_postcode, decimal weight, decimal width, decimal height, decimal length);
-        Task<ShippingCost> GetShippingCostAsync(string from_postcode, string to_postcode, decimal weight, decimal width, decimal height, decimal length, string service_code);
+        Task<ShippingSizes> GetShippingSizesDomestic();
+        Task<ShippingServices> GetShippingServicesDomestic(string from_postcode, string to_postcode, decimal weight, decimal width, decimal height, decimal length);
+        Task<ShippingCost> GetShippingCostDomestic(string from_postcode, string to_postcode, decimal weight, decimal width, decimal height, decimal length, string service_code);
+
+        Task<ValidCountries> GetValidShippingCountries();
+        Task<ShippingServices> GetShippingServicesInternational(string countryCode, decimal weight);
+        Task<ShippingCost> GetShippingCostInternational(string countryCode, decimal weight, string serviceCode);
+
     }
 }

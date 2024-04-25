@@ -1,6 +1,11 @@
 
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.Caching.Memory;
+using Serilog;
+using System.Net;
 using System.Net.Http;
+using System.Text;
+using System.Web;
 
 namespace Dotnetdudes.Buyabob.Api.Services.Helpers
 {
@@ -21,22 +26,48 @@ namespace Dotnetdudes.Buyabob.Api.Services.Helpers
             // if it is not, send the request to the server and cache the response
             // if the request is not a GET request, send the request to the server
             // use the in memory cache to store the response
+
+            ArgumentNullException.ThrowIfNull(request);
+
             if (request.Method == HttpMethod.Get)
             {
-                if (request.RequestUri.ToString().Contains("size"))
+                if (request.RequestUri!.ToString().Contains("size"))
                 {
-                    if (_cache != null && _cache.TryGetValue("shippingSizes", out HttpResponseMessage response))
+                    if(_cache.TryGetValue(request.RequestUri.ToString(), out string? originalContent))
                     {
+                        return new HttpResponseMessage(HttpStatusCode.OK)
+                        {
+                            Content = new StringContent(originalContent!, Encoding.UTF8, "application/json")
+                        };
+                    }
+                    else
+                    {
+                        var response = await base.SendAsync(request, cancellationToken);
+                        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                        _cache.Set(request.RequestUri.ToString(), content, TimeSpan.FromHours(1));
                         return response;
                     }
-                    response = await base.SendAsync(request, cancellationToken);
-                    if (_cache != null)
+                }
+
+                if (request.RequestUri!.ToString().Contains("countries"))
+                {
+                    if (_cache.TryGetValue("countries", out string? originalContent))
                     {
-                        _cache.Set("shippingSizes", response, TimeSpan.FromHours(12));
+                        return new HttpResponseMessage(HttpStatusCode.OK)
+                        {
+                            Content = new StringContent(originalContent!, Encoding.UTF8, "application/json")
+                        };
                     }
-                    return response;
+                    else
+                    {
+                        var response = await base.SendAsync(request, cancellationToken);
+                        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                        _cache.Set("countries", content, TimeSpan.FromHours(12));
+                        return response;
+                    }
                 }
             }
+            
             return await base.SendAsync(request, cancellationToken);
         }
     }

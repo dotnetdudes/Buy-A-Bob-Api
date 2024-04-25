@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Dotnetdudes.Buyabob.Api.Models.Auspost
@@ -23,8 +22,8 @@ namespace Dotnetdudes.Buyabob.Api.Models.Auspost
         [JsonPropertyName("service"), JsonRequired]
         public required string Service { get; set; }
 
-        [JsonPropertyName("delivery_time"), JsonRequired]
-        public required string DeliveryTime { get; set; }
+        [JsonPropertyName("delivery_time")]
+        public string? DeliveryTime { get; set; }
 
         [JsonPropertyName("total_cost"), JsonRequired]
         public required string TotalCost { get; set; }
