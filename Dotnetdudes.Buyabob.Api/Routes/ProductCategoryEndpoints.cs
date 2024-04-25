@@ -22,7 +22,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 return TypedResults.Json(productcategories);
             });
 
-            group.MapGet("/{id}", async Task<Results<JsonHttpResult<ProductCategory>, NotFound, BadRequest>>(IDbConnection db, string id) =>
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<ProductCategory>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -31,7 +31,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var productCategory = await db.QueryFirstOrDefaultAsync<ProductCategory>("SELECT * FROM productcategories WHERE id = @id", new { id });
-                
+
                 return productCategory is null ? TypedResults.NotFound() : TypedResults.Json(productCategory);
             });
 
@@ -45,7 +45,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var productcategories = await db.QueryAsync<ProductCategory>("SELECT * FROM productcategories WHERE productid = @id", new { id });
-                
+
                 return productcategories is null ? TypedResults.NotFound() : TypedResults.Json(productcategories);
             });
 
@@ -59,7 +59,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var productcategories = await db.QueryAsync<ProductCategory>("SELECT * FROM productcategories WHERE productid = @id AND deleted IS NULL", new { id });
-                
+
                 return productcategories is null ? TypedResults.NotFound() : TypedResults.Json(productcategories);
             });
 
@@ -73,7 +73,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var productcategories = await db.QueryAsync<ProductCategory>("SELECT * FROM productcategories WHERE categoryid = @id", new { id });
-                
+
                 return productcategories is null ? TypedResults.NotFound() : TypedResults.Json(productcategories);
             });
 
@@ -87,7 +87,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var productcategories = await db.QueryAsync<ProductCategory>("SELECT * FROM productcategories WHERE categoryid = @id AND deleted IS NULL", new { id });
-                
+
                 return productcategories is null ? TypedResults.NotFound() : TypedResults.Json(productcategories);
             });
 
@@ -135,7 +135,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 return TypedResults.Ok(productCategory);
             }).RequireAuthorization("BobAdmin");
-            
+
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id

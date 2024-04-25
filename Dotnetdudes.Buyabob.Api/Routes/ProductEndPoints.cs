@@ -2,8 +2,8 @@
 using Dotnetdudes.Buyabob.Api.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
-using System.Data;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace Dotnetdudes.Buyabob.Api.Routes
 {
@@ -57,7 +57,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 using var stream = File.OpenWrite(filePath);
                 await file.CopyToAsync(stream);
                 // validate product
-                var product = new Product { Name = name, Description = description,ImageUrl= fileName, Price = price, Weight = weight, Width = width, Height = height, Depth = depth, Quantity = quantity, Created = DateTime.UtcNow };
+                var product = new Product { Name = name, Description = description, ImageUrl = fileName, Price = price, Weight = weight, Width = width, Height = height, Depth = depth, Quantity = quantity, Created = DateTime.UtcNow };
                 var validationResult = await validator.ValidateAsync(product);
                 if (!validationResult.IsValid)
                 {

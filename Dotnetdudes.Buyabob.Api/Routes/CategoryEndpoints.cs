@@ -6,7 +6,7 @@ using System.Data;
 
 namespace Dotnetdudes.Buyabob.Api.Routes
 {
-    public static  class CategoryEndpoints
+    public static class CategoryEndpoints
     {
         public static RouteGroupBuilder MapCategoryEndpoints(this RouteGroupBuilder group)
         {
@@ -22,7 +22,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 return TypedResults.Json(categories);
             });
 
-            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Category>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Category>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -79,7 +79,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 return TypedResults.Ok(category);
             }).RequireAuthorization("BobAdmin");
-            
+
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id

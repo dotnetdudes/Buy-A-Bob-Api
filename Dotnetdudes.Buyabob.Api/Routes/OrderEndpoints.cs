@@ -45,7 +45,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var orders = await db.QueryAsync<Order>("SELECT * FROM orders WHERE customerid = @id", new { id });
-                
+
                 return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
             });
 
@@ -59,12 +59,12 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var orders = await db.QueryAsync<Order>("SELECT * FROM orders WHERE customerid = @id AND deleted IS NULL", new { id });
-                
+
                 return orders is null ? TypedResults.NotFound() : TypedResults.Json(orders);
             });
 
             // get by status id
-            group.MapGet("/status/{id}", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            group.MapGet("/status/{id}", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -78,7 +78,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
             });
 
             // get active by status id
-            group.MapGet("/status/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            group.MapGet("/status/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -92,7 +92,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
             });
 
             // get by shipping type id
-            group.MapGet("/shippingType/{id}", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            group.MapGet("/shippingType/{id}", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -106,7 +106,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
             });
 
             // get active by shipping type id
-            group.MapGet("/shippingType/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            group.MapGet("/shippingType/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -120,7 +120,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
             });
 
             // get by shipping address id
-            group.MapGet("/shippingAddress/{id}", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            group.MapGet("/shippingAddress/{id}", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -134,11 +134,11 @@ namespace Dotnetdudes.Buyabob.Api.Routes
             });
 
             // get active by shipping address id
-            group.MapGet("/shippingAddress/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            group.MapGet("/shippingAddress/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Order>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
-                if (!success) 
+                if (!success)
                 {
                     return TypedResults.BadRequest();
                 }
@@ -202,7 +202,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 return TypedResults.Ok(order);
             });
-            
+
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id

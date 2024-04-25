@@ -31,7 +31,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var shippingType = await db.QueryFirstOrDefaultAsync<ShippingType>("SELECT * FROM shippingtypes WHERE id = @id", new { id });
-                
+
                 return shippingType is null ? TypedResults.NotFound() : TypedResults.Json(shippingType);
             });
 
@@ -80,7 +80,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 return TypedResults.Ok(shippingType);
             }).RequireAuthorization("BobAdmin");
-            
+
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id

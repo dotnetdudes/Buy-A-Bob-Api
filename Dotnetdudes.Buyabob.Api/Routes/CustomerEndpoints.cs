@@ -24,7 +24,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 return TypedResults.Json(customers);
             });
 
-            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Customer>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Customer>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -79,7 +79,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 return TypedResults.Ok(customer);
             }).RequireAuthorization("BobAdmin");
-            
+
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id

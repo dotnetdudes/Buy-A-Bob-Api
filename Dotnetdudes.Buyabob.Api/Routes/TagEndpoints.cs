@@ -22,7 +22,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 return TypedResults.Json(tags);
             });
 
-            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Tag>, NotFound, BadRequest>>(IDbConnection db, string id) =>
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Tag>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -31,7 +31,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var tag = await db.QueryFirstOrDefaultAsync<Tag>("SELECT * FROM tags WHERE Id = @id", new { id });
-                
+
                 return tag is null ? TypedResults.NotFound() : TypedResults.Json(tag);
             });
 
@@ -79,7 +79,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 return TypedResults.Ok(tag);
             }).RequireAuthorization("BobAdmin");
-            
+
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id

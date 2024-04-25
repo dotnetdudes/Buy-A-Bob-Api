@@ -48,7 +48,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 // return TypedResults.Json(addresses);
                 return addresses is null ? TypedResults.NotFound() : TypedResults.Json(addresses);
             });
-            
+
             // get active by customer id
             group.MapGet("/customer/{id}/active", async Task<Results<JsonHttpResult<IEnumerable<Address>>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
@@ -122,7 +122,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 // delete address from database
-                var rowsAffected = await db.ExecuteAsync("UPDATE addresses SET deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id});
+                var rowsAffected = await db.ExecuteAsync("UPDATE addresses SET deleted = @date WHERE id = @id", new { date = DateTime.UtcNow, id });
                 if (rowsAffected == 0)
                 {
                     return TypedResults.NotFound();

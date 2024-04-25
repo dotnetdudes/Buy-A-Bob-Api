@@ -22,7 +22,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 return TypedResults.Json(carts);
             });
 
-            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Cart>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<Cart>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -136,7 +136,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 return TypedResults.Ok(cart);
             });
-            
+
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id

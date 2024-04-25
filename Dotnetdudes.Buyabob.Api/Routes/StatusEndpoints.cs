@@ -31,11 +31,11 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var cartStatus = await db.QueryFirstOrDefaultAsync<Status>("SELECT * FROM statuses WHERE Id = @id", new { id });
-                
+
                 return cartStatus is null ? TypedResults.NotFound() : TypedResults.Json(cartStatus);
             });
 
-            group.MapPost("/", async Task<Results<Created<Status>, NotFound, ValidationProblem>> (IValidator<Status> validator, IDbConnection db, 
+            group.MapPost("/", async Task<Results<Created<Status>, NotFound, ValidationProblem>> (IValidator<Status> validator, IDbConnection db,
             Status cartStatus) =>
             {
                 // validate cartStatus
@@ -80,7 +80,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 return TypedResults.Ok(cartStatus);
             }).RequireAuthorization("BobAdmin");
-            
+
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id

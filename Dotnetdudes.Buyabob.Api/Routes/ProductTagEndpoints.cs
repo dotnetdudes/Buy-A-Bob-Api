@@ -22,7 +22,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 return TypedResults.Json(producttags);
             });
 
-            group.MapGet("/{id}", async Task<Results<JsonHttpResult<ProductTag>, NotFound, BadRequest>>  (IDbConnection db, string id) =>
+            group.MapGet("/{id}", async Task<Results<JsonHttpResult<ProductTag>, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -31,7 +31,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var productTag = await db.QueryFirstOrDefaultAsync<ProductTag>("SELECT * FROM producttags WHERE id = @id", new { id });
-                
+
                 return productTag is null ? TypedResults.NotFound() : TypedResults.Json(productTag);
             });
 
@@ -45,7 +45,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var producttags = await db.QueryAsync<ProductTag>("SELECT * FROM producttags WHERE productid = @id", new { id });
-                
+
                 return producttags is null ? TypedResults.NotFound() : TypedResults.Json(producttags);
             });
 
@@ -59,7 +59,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var producttags = await db.QueryAsync<ProductTag>("SELECT * FROM producttags WHERE productid = @id AND deleted IS NULL", new { id });
-                
+
                 return producttags is null ? TypedResults.NotFound() : TypedResults.Json(producttags);
             });
 
@@ -73,7 +73,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     return TypedResults.BadRequest();
                 }
                 var producttags = await db.QueryAsync<ProductTag>("SELECT * FROM producttags WHERE tagid = @id", new { id });
-                
+
                 return producttags is null ? TypedResults.NotFound() : TypedResults.Json(producttags);
             });
 
@@ -135,7 +135,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 }
                 return TypedResults.Ok(productTag);
             }).RequireAuthorization("BobAdmin");
-            
+
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id

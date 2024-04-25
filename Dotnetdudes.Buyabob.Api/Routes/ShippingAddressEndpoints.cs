@@ -36,7 +36,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
             });
 
             // get by customer id
-            group.MapGet("/customer/{id}", async Task<Results<JsonHttpResult<IEnumerable<ShippingAddress>>, BadRequest>>  (IDbConnection db, string id) =>
+            group.MapGet("/customer/{id}", async Task<Results<JsonHttpResult<IEnumerable<ShippingAddress>>, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id
                 bool success = int.TryParse(id, out int number);
@@ -57,7 +57,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                 {
                     return TypedResults.BadRequest();
                 }
-                var shippingaddresses = await db.QueryAsync<ShippingAddress>("SELECT * FROM shippingaddresses WHERE customerid = @id AND deleted IS NULL", new { id});
+                var shippingaddresses = await db.QueryAsync<ShippingAddress>("SELECT * FROM shippingaddresses WHERE customerid = @id AND deleted IS NULL", new { id });
                 return TypedResults.Json(shippingaddresses);
             });
 
@@ -75,7 +75,7 @@ namespace Dotnetdudes.Buyabob.Api.Routes
                     VALUES (@Name) returning id;", shippingAddress);
                 return TypedResults.Created($"/shippingaddresses/{shippingAddress.Id}", shippingAddress);
             });
-            
+
             group.MapDelete("/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (IDbConnection db, string id) =>
             {
                 // validate id

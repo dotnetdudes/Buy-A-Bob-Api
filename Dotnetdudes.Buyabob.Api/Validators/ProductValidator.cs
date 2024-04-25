@@ -27,5 +27,5 @@ namespace Dotnetdudes.Buyabob.Api.Validators
             RuleFor(x => x.Height).NotEmpty().WithMessage("Height is required");
             RuleFor(x => x.Height).GreaterThan(0).WithMessage("Height must be greater than 0");
         }
-    }   
+    }
 }

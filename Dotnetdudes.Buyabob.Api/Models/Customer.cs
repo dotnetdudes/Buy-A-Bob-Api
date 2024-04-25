@@ -17,6 +17,6 @@
 
         public DateTime? Deleted { get; set; }
 
-        public List<Address> Addresses { get; set; } = [];        
+        public List<Address> Addresses { get; set; } = [];
     }
 }
